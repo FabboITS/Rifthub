@@ -1,0 +1,79 @@
+name: rifthub
+
+x-env: &env
+  env_file:
+    - path: .env
+      required: false
+
+services:
+  db:
+    image: postgres:16-alpine
+    <<: *env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-rifthub}
+      POSTGRES_USER: ${POSTGRES_USER:-rifthub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rifthub}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build: ./backend
+    <<: *env
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_DB: ${POSTGRES_DB:-rifthub}
+      POSTGRES_USER: ${POSTGRES_USER:-rifthub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rifthub}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    # GPU NVIDIA (richiede nvidia-container-toolkit): decommenta il blocco seguente.
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  ollama-init:
+    image: ollama/ollama:latest
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      AI_MODEL: ${AI_MODEL:-llama3.2:3b}
+    entrypoint: ["/bin/sh", "-c", "echo \"Download modello $$AI_MODEL...\" && ollama pull \"$$AI_MODEL\" && echo 'Modello pronto.'"]
+    restart: "no"
+
+volumes:
+  pgdata:
+  ollama_data:
