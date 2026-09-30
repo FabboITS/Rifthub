@@ -14,11 +14,18 @@ class UserSummarySerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     teams = serializers.SerializerMethodField()
+    is_staff = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ["id", "email", "username", "display_name", "role", "avatar_url", "teams"]
-        read_only_fields = ["id", "email", "username", "role", "teams"]
+        fields = ["id", "email", "username", "display_name", "role", "avatar_url", "teams", "is_staff"]
+        read_only_fields = ["id", "email", "username", "role", "teams", "is_staff"]
+
+    def get_is_staff(self, user):
+        """COACH/ANALYST in at least one team: unlocks scouting, tactics and coaching creation."""
+        from apps.core.permissions import is_staff_anywhere
+
+        return is_staff_anywhere(user)
 
     def get_teams(self, user):
         from apps.teams.models import Team

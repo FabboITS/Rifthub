@@ -1,10 +1,11 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../App";
 import ProtectedRoute from "../components/ProtectedRoute";
 import SwipeDeck from "../components/SwipeDeck";
+import { QueryState } from "../components/ui";
 import { AuthProvider } from "../context/AuthContext";
 
 vi.mock("../api/client", async (orig) => {
@@ -68,5 +69,18 @@ describe("SwipeDeck", () => {
     fireEvent.pointerMove(el, { clientX: 300 });
     fireEvent.pointerUp(el, { clientX: 300 });
     expect(onSwipe).toHaveBeenCalledWith(expect.objectContaining({ id: "1" }), "LIKE");
+  });
+});
+
+describe("QueryState", () => {
+  // Regression: a disabled query (e.g. waiting for a team to be picked) has no data;
+  // rendering children with undefined crashed the Scrim and Scouting pages.
+  it("shows loading while a disabled query has no data", () => {
+    function Page() {
+      const q = useQuery({ queryKey: ["x"], queryFn: () => ({ items: [] }), enabled: false });
+      return <QueryState query={q}>{(d) => <p>{d.items.length} items</p>}</QueryState>;
+    }
+    render(<QueryClientProvider client={new QueryClient()}><Page /></QueryClientProvider>);
+    expect(screen.getByRole("status")).toHaveTextContent("Caricamento");
   });
 });

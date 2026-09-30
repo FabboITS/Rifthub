@@ -122,8 +122,9 @@ class TournamentViewSet(viewsets.ModelViewSet):
         ser = RegisterTeamSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
         team = ser.validated_data["team"]
-        if not can_manage_team(request.user, team):
-            raise PermissionDenied("Puoi iscrivere solo un team che gestisci.")
+        is_organizer = t.organizer_id == request.user.id or is_admin(request.user)
+        if not (is_organizer or can_manage_team(request.user, team)):
+            raise PermissionDenied("Puoi iscrivere solo un team che gestisci (l'organizzatore può iscrivere qualsiasi team).")
         if t.status != Tournament.Status.REGISTRATION:
             raise ValidationError("Le iscrizioni non sono aperte.")
         if t.entries.count() >= t.max_teams:

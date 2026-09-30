@@ -9,11 +9,21 @@ export function championColor(name = "") {
   return PALETTE[h % PALETTE.length];
 }
 
+// "Kai'Sa", "kaisa", "KaiSa" and "Wukong"/"MonkeyKing" all resolve to the same champion.
+const norm = (s = "") => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+export function findChampion(champions, name) {
+  const n = norm(name);
+  return champions?.find((c) => norm(c.id) === n || norm(c.name) === n);
+}
+
 /** Data Dragon icon with a coloured-initial fallback (offline / unknown champion). */
 export default function ChampionIcon({ name, size = 32 }) {
   const { data } = useChampions();
-  const [failed, setFailed] = useState(false);
-  const champ = data?.champions?.find((c) => c.id === name || c.name === name);
+  const champ = findChampion(data?.champions, name);
+  // Remember the failed URL, not a flag: a reused instance showing another champion must retry.
+  const [failedSrc, setFailedSrc] = useState(null);
+  const failed = failedSrc === champ?.icon;
   const style = { width: size, height: size };
   if (!champ || failed) {
     return (
@@ -28,6 +38,6 @@ export default function ChampionIcon({ name, size = 32 }) {
   }
   return (
     <img src={champ.icon} alt={champ.name} title={champ.name} style={style}
-      className="rounded-full border border-gold/40" onError={() => setFailed(true)} />
+      draggable={false} className="rounded-full border border-gold/40" onError={() => setFailedSrc(champ.icon)} />
   );
 }

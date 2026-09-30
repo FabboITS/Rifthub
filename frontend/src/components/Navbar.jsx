@@ -1,5 +1,5 @@
 import {
-  Bot, Brain, ClipboardList, ExternalLink, Heart, LayoutDashboard, LogOut, Map, Menu, Swords, Trophy, Users, Video,
+  Bot, Brain, ClipboardList, Crosshair, ExternalLink, Heart, LayoutDashboard, LogOut, Map, Menu, Swords, Trophy, Users, Video,
 } from "lucide-react";
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
@@ -14,6 +14,7 @@ const LINKS = [
   ["/tournaments", "Tornei", Trophy],
   ["/scouting", "Scouting", Heart],
   ["/tactics", "Tattiche", Map],
+  ["/draft", "Draft", Crosshair],
   ["/vod", "VOD", Video],
   ["/coaching", "Coaching", ClipboardList],
   ["/ai", "Assistente AI", Bot],

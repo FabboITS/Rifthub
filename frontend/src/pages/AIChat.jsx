@@ -81,7 +81,7 @@ export default function AIChat() {
     },
     onError: (e) => setMessages((m) => [...m, { role: "error", text: errMsg(e) + (e.response?.data?.error ? ` — ${e.response.data.error}` : "") }]),
   });
-  useEffect(() => bottom.current?.scrollIntoView?.({ behavior: "smooth" }), [messages, chat.isPending]);
+  useEffect(() => { bottom.current?.scrollIntoView?.({ behavior: "smooth" }); }, [messages, chat.isPending]);
 
   const send = (msg) => {
     if (!msg.trim() || chat.isPending) return;

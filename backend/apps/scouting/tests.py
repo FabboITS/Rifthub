@@ -124,3 +124,29 @@ def test_champions_fallback(make_user, client_for, monkeypatch):
     datadragon.cache.clear()
     res = client_for(make_user()).get("/api/riot/champions/")
     assert res.data["source"] == "fallback" and len(res.data["champions"]) >= 40
+
+
+def test_liked_list_opens_chat_and_is_staff_only(make_team, make_user, client_for, card):
+    team = make_team()
+    p = card("Liked")
+    c = client_for(team.owner)
+    c.post("/api/scouting/swipe/", {"team": team.id, "player": p.id, "direction": "LIKE"})
+    liked = c.get("/api/scouting/liked/", {"team": team.id}).data
+    assert [x["nickname"] for x in liked] == ["Liked"] and liked[0]["match_id"] is None
+    res = c.post("/api/scouting/liked/", {"team": team.id, "player": p.id})
+    assert res.status_code == 201
+    assert c.get("/api/scouting/liked/", {"team": team.id}).data[0]["match_id"] == res.data["id"]
+    # a plain player of the team cannot scout
+    player = make_user(role="PLAYER")
+    Membership.objects.create(user=player, team=team, role_in_team="MID")
+    assert client_for(player).get("/api/scouting/liked/", {"team": team.id}).status_code == 403
+    assert client_for(player).get("/api/scouting/deck/", {"team": team.id}).status_code == 403
+
+
+def test_anyone_creates_one_own_card(make_user, client_for):
+    user = make_user(role="COACH")
+    c = client_for(user)
+    body = {"nickname": "Me", "role": "MID", "rank": "GOLD_1", "champion_pool": ["Ahri"]}
+    assert c.post("/api/scouting/cards/", body, format="json").data["user"] == user.id
+    assert c.get("/api/scouting/cards/mine/").data["nickname"] == "Me"
+    assert c.post("/api/scouting/cards/", {**body, "nickname": "Me2"}, format="json").status_code == 400

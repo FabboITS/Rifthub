@@ -6,7 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 
-from apps.core.permissions import TeamScopedMixin, can_manage_team, is_admin
+from apps.core.permissions import TeamScopedMixin, is_admin, is_team_staff
 
 from .models import ReplayOverlay, ShadowSession, TacticBoard, TacticElement, TacticFrame
 from .serializers import (
@@ -22,11 +22,12 @@ from .serializers import (
 
 
 def _require_editor(user, team):
-    if not can_manage_team(user, team):
-        raise PermissionDenied("Non puoi modificare le tattiche di questo team.")
+    if not is_team_staff(user, team):
+        raise PermissionDenied("Solo coach e analyst del team possono gestire le tattiche.")
 
 
 class TacticBoardViewSet(TeamScopedMixin, viewsets.ModelViewSet):
+    editor_check = staticmethod(is_team_staff)
     queryset = TacticBoard.objects.select_related("team").prefetch_related("frames__elements")
     filterset_fields = ["team", "is_shared"]
     search_fields = ["title"]
@@ -78,6 +79,7 @@ class TacticBoardViewSet(TeamScopedMixin, viewsets.ModelViewSet):
 
 
 class TacticFrameViewSet(TeamScopedMixin, viewsets.ModelViewSet):
+    editor_check = staticmethod(is_team_staff)
     queryset = TacticFrame.objects.select_related("board__team").prefetch_related("elements")
     serializer_class = TacticFrameSerializer
     team_path = "board__team"
@@ -103,6 +105,7 @@ class TacticFrameViewSet(TeamScopedMixin, viewsets.ModelViewSet):
 
 
 class TacticElementViewSet(TeamScopedMixin, viewsets.ModelViewSet):
+    editor_check = staticmethod(is_team_staff)
     queryset = TacticElement.objects.select_related("frame__board__team")
     serializer_class = TacticElementSerializer
     team_path = "frame__board__team"
@@ -164,6 +167,7 @@ class ShadowSessionViewSet(viewsets.ModelViewSet):
 
 
 class ReplayOverlayViewSet(TeamScopedMixin, viewsets.ModelViewSet):
+    editor_check = staticmethod(is_team_staff)
     queryset = ReplayOverlay.objects.select_related("board__team").prefetch_related("board__frames__elements")
     serializer_class = ReplayOverlaySerializer
     team_path = "board__team"

@@ -6,14 +6,14 @@ import { Link, useNavigate } from "react-router-dom";
 import api, { errMsg } from "../api/client";
 import { Badge, Card, Empty, Field, Modal, PageHeader, QueryState, Select } from "../components/ui";
 import { fromNow } from "../lib/format";
-import { useList, useManagedTeams } from "../lib/hooks";
+import { useList, useStaffTeams } from "../lib/hooks";
 
 export default function Tactics() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const boards = useList("boards", "/tactic-boards/", { page_size: 100 });
   const sessions = useList("shadow", "/shadow-sessions/", { page_size: 50 });
-  const teams = useManagedTeams();
+  const teams = useStaffTeams();
   const [open, setOpen] = useState(null);
   const [form, setForm] = useState({ title: "", team: "", description: "" });
   const [shadow, setShadow] = useState({ player: "" });
@@ -63,9 +63,9 @@ export default function Tactics() {
                 <p className="mt-2 text-sm text-slate-300">{b.description}</p>
                 <div className="mt-3 flex gap-2">
                   {b.is_shared && <Badge color="hex">Condivisa</Badge>}
-                  <button className="btn-ghost ml-auto py-1 text-xs" onClick={() => { setShadow({ player: members[0]?.[0] || "" }); setOpen(b); }}>
+                  {teams.data.some((t) => t.id === b.team) && <button className="btn-ghost ml-auto py-1 text-xs" onClick={() => { setShadow({ player: members[0]?.[0] || "" }); setOpen(b); }}>
                     <Radio className="h-3 w-3" /> Shadow session
-                  </button>
+                  </button>}
                 </div>
               </div>
             ))}

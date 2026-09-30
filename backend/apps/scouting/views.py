@@ -8,7 +8,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import SAFE_METHODS, BasePermission, IsAuthenticated
 from rest_framework.response import Response
 
-from apps.core.permissions import can_manage_team, is_admin
+from apps.core.permissions import is_admin, is_team_staff
 from apps.scrims.services.finder import team_avg_rank
 from apps.teams.models import Team
 
@@ -52,9 +52,22 @@ class PlayerCardViewSet(viewsets.ModelViewSet):
     ]
 
     def perform_create(self, serializer):
+        """Anyone can publish their own identity card; scouts/admins may add extra unlinked ones."""
         user = self.request.user
-        own = user.role == "PLAYER" and not PlayerCard.objects.filter(user=user).exists()
-        serializer.save(user=user if own else None)
+        if not PlayerCard.objects.filter(user=user).exists():
+            serializer.save(user=user)
+        elif user.role == "SCOUT" or is_admin(user):
+            serializer.save(user=None)
+        else:
+            raise ValidationError("Hai già una carta giocatore: modificala invece di crearne un'altra.")
+
+    @extend_schema(responses=PlayerCardSerializer)
+    @action(detail=False)
+    def mine(self, request):
+        card = PlayerCard.objects.filter(user=request.user).select_related("stats").first()
+        if not card:
+            return Response({"detail": "Nessuna carta."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(PlayerCardSerializer(card).data)
 
     @extend_schema(parameters=[OpenApiParameter("with", str, required=True)], responses=dict)
     @action(detail=True)
@@ -84,8 +97,8 @@ class PlayerCardViewSet(viewsets.ModelViewSet):
 
 def _managed_team(user, team_id):
     team = get_object_or_404(Team, pk=team_id)
-    if not can_manage_team(user, team):
-        raise PermissionDenied("Puoi fare scouting solo per un team che gestisci.")
+    if not is_team_staff(user, team):
+        raise PermissionDenied("Lo scouting è riservato a coach e analyst del team.")
     return team
 
 
@@ -146,9 +159,36 @@ def visible_matches(user):
     qs = ScoutMatch.objects.select_related("team", "player__stats")
     if is_admin(user):
         return qs
-    managed = [t.id for t in Team.objects.filter(Q(owner=user) | Q(memberships__user=user)).distinct()
-               if can_manage_team(user, t)]
-    return qs.filter(Q(team_id__in=managed) | Q(player__user=user))
+    staff_teams = Team.objects.filter(
+        memberships__user=user, memberships__is_active=True, memberships__role_in_team__in=["COACH", "ANALYST"]
+    )
+    return qs.filter(Q(team__in=staff_teams) | Q(player__user=user))
+
+
+@extend_schema(parameters=[OpenApiParameter("team", str, required=True)], request=SwipeSerializer, responses=dict)
+@api_view(["GET", "POST"])
+def liked(request):
+    """GET ?team=: players the team liked (with their chat, if any) · POST {team, player}: open a chat now."""
+    if request.method == "POST":
+        ser = SwipeSerializer(data={"team": request.data.get("team"), "player": request.data.get("player"), "direction": Direction.LIKE})
+        ser.is_valid(raise_exception=True)
+        team, player = _managed_team(request.user, ser.validated_data["team"].id), ser.validated_data["player"]
+        services.team_swipe(team, player, Direction.LIKE)
+        match, _ = ScoutMatch.objects.get_or_create(team=team, player=player)
+        return Response(ScoutMatchSerializer(match).data, status=status.HTTP_201_CREATED)
+    if not request.query_params.get("team"):
+        raise ValidationError({"team": "Parametro obbligatorio."})
+    team = _managed_team(request.user, request.query_params["team"])
+    chats = {p: str(m) for p, m in team.scout_matches.values_list("player_id", "id")}
+    liked_back = set(team.player_swipes.filter(direction=Direction.LIKE).values_list("player_id", flat=True))
+    cards = PlayerCard.objects.select_related("stats").filter(
+        team_swipes__swiper_team=team, team_swipes__direction=Direction.LIKE
+    )
+    data = [
+        {**PlayerCardSerializer(c).data, "match_id": chats.get(c.id), "liked_back": c.id in liked_back}
+        for c in cards
+    ]
+    return Response(data)
 
 
 class ScoutMatchList(generics.ListAPIView):

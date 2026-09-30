@@ -51,7 +51,8 @@ export function Empty({ children }) {
 
 /** Renders loading / error / content for a react-query result. */
 export function QueryState({ query, children }) {
-  if (query.isLoading) return <Loading />;
+  // isPending (not isLoading): a disabled query has no data yet but isLoading=false.
+  if (query.isPending) return <Loading />;
   if (query.isError) return <ErrorBox error={query.error} />;
   return children(query.data);
 }

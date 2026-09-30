@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Search, Wand2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import api, { errMsg } from "../api/client";
-import { Badge, Card, Empty, Field, Modal, PageHeader, QueryState, ScoreBar, Select } from "../components/ui";
+import { Badge, Loading, Card, Empty, Field, Modal, PageHeader, QueryState, ScoreBar, Select } from "../components/ui";
 import { RANK_OPTIONS, TIERS, fmtDate, label, toLocalInput } from "../lib/format";
 import { useList, useManagedTeams } from "../lib/hooks";
 
@@ -115,7 +115,7 @@ export default function Scrims() {
     onSuccess: refresh,
   });
 
-  if (teams.isLoading) return null;
+  if (teams.isPending) return <Loading />;
   if (!teams.data.length) return <Empty>Serve un team che gestisci per organizzare scrim.</Empty>;
 
   return (

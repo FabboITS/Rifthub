@@ -37,12 +37,13 @@ class TeamSerializer(serializers.ModelSerializer):
     owner = UserSummarySerializer(read_only=True)
     members = serializers.SerializerMethodField()
     can_edit = serializers.SerializerMethodField()
+    is_staff = serializers.SerializerMethodField()
 
     class Meta:
         model = Team
         fields = [
             "id", "name", "tag", "region", "tier", "logo_url", "description",
-            "owner", "members", "can_edit", "created_at", "updated_at",
+            "owner", "members", "can_edit", "is_staff", "created_at", "updated_at",
         ]
 
     def get_members(self, team):
@@ -53,3 +54,8 @@ class TeamSerializer(serializers.ModelSerializer):
         from apps.core.permissions import can_manage_team
 
         return can_manage_team(self.context["request"].user, team)
+
+    def get_is_staff(self, team):
+        from apps.core.permissions import is_team_staff
+
+        return is_team_staff(self.context["request"].user, team)

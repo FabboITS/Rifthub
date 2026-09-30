@@ -1,7 +1,8 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MutationCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { Toaster } from "react-hot-toast";
-import { Outlet, Route, Routes } from "react-router-dom";
+import { Outlet, Route, Routes, useLocation } from "react-router-dom";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
@@ -9,6 +10,7 @@ import AIChat from "./pages/AIChat";
 import { Login, Register } from "./pages/Auth";
 import Coaching from "./pages/Coaching";
 import Dashboard from "./pages/Dashboard";
+import Draft from "./pages/Draft";
 import FantaLol from "./pages/FantaLol";
 import Scouting from "./pages/Scouting";
 import ScoutingBrowse from "./pages/ScoutingBrowse";
@@ -24,12 +26,29 @@ import Tournaments from "./pages/Tournaments";
 import VodDetail from "./pages/VodDetail";
 import Vods from "./pages/Vods";
 
+// Every page refetches its data periodically and when the browser tab regains focus.
+const AUTO_REFRESH_MS = 15000;
+
+function createQueryClient() {
+  const client = new QueryClient({
+    defaultOptions: {
+      queries: { retry: 1, refetchOnWindowFocus: true, refetchInterval: AUTO_REFRESH_MS },
+    },
+    // Any successful write refreshes every page's data, so no manual reload is ever needed.
+    mutationCache: new MutationCache({ onSuccess: () => client.invalidateQueries() }),
+  });
+  return client;
+}
+
 function Layout() {
+  const { pathname } = useLocation();
   return (
     <ProtectedRoute>
       <Navbar />
       <main className="mx-auto max-w-7xl px-4 py-6">
-        <Outlet />
+        <ErrorBoundary key={pathname}>
+          <Outlet />
+        </ErrorBoundary>
       </main>
     </ProtectedRoute>
   );
@@ -40,9 +59,7 @@ function NotFound() {
 }
 
 export default function App() {
-  const [queryClient] = useState(
-    () => new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } }),
-  );
+  const [queryClient] = useState(createQueryClient);
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -66,6 +83,7 @@ export default function App() {
             <Route path="vod" element={<Vods />} />
             <Route path="vod/:id" element={<VodDetail />} />
             <Route path="coaching" element={<Coaching />} />
+            <Route path="draft" element={<Draft />} />
             <Route path="ai" element={<AIChat />} />
             <Route path="fantalol" element={<FantaLol />} />
             <Route path="*" element={<NotFound />} />

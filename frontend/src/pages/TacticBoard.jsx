@@ -10,7 +10,7 @@ export default function TacticBoardPage() {
   const qc = useQueryClient();
   const board = useQuery({ queryKey: ["board", id], queryFn: () => api.get(`/tactic-boards/${id}/`).then((r) => r.data) });
   const teams = useMyTeams();
-  const canEdit = (teams.data || []).some((t) => t.id === board.data?.team && t.can_edit);
+  const canEdit = (teams.data || []).some((t) => t.id === board.data?.team && t.is_staff);
   return (
     <QueryState query={board}>
       {(b) => (

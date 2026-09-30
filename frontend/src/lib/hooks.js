@@ -11,6 +11,12 @@ export function useManagedTeams() {
   return { ...q, data: (q.data || []).filter((t) => t.can_edit) };
 }
 
+/** Teams where the user is COACH/ANALYST: the only ones allowed to scout, create tactics and coaching. */
+export function useStaffTeams() {
+  const q = useMyTeams();
+  return { ...q, data: (q.data || []).filter((t) => t.is_staff) };
+}
+
 export function useList(key, url, params, options = {}) {
   return useQuery({
     queryKey: [key, url, params],
@@ -24,5 +30,6 @@ export function useChampions() {
     queryKey: ["champions"],
     queryFn: () => api.get("/riot/champions/").then((r) => r.data),
     staleTime: Infinity,
+    refetchInterval: false,
   });
 }

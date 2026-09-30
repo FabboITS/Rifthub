@@ -162,6 +162,8 @@ def test_tournament_register(make_team, client_for):
     assert c.post(f"/api/tournaments/{t.id}/register/", {"team": team.id}).status_code == 400
     other = make_team()
     assert c.post(f"/api/tournaments/{t.id}/register/", {"team": other.id}).status_code == 403
+    # the organizer can register any team
+    assert client_for(t.organizer).post(f"/api/tournaments/{t.id}/register/", {"team": other.id}).status_code == 201
 
 
 def _request(team, start, **kw):

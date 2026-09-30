@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import api, { errMsg, results } from "../api/client";
 import { Badge, Card, Empty, PageHeader, QueryState } from "../components/ui";
@@ -22,7 +23,7 @@ function Chat({ match }) {
     onSuccess: () => { setText(""); qc.invalidateQueries({ queryKey: ["scout-messages", match.id] }); },
     onError: (e) => toast.error(errMsg(e)),
   });
-  useEffect(() => bottom.current?.scrollIntoView?.({ behavior: "smooth" }), [msgs.data]);
+  useEffect(() => { bottom.current?.scrollIntoView?.({ behavior: "smooth" }); }, [msgs.data]);
 
   return (
     <Card title={`${match.player.nickname} ↔ ${match.team.name}`} className="flex h-[70vh] flex-col">
@@ -52,7 +53,10 @@ function Chat({ match }) {
 
 export default function ScoutingMatches() {
   const matches = useQuery({ queryKey: ["scout-matches"], queryFn: () => api.get("/scouting/matches/").then((r) => results(r.data)) });
-  const [active, setActive] = useState(null);
+  const [params] = useSearchParams();
+  const [picked, setActive] = useState(null);
+  // ?m=<id> (from "Chatta" in the liked list) preselects that chat.
+  const active = picked || matches.data?.find((m) => m.id === params.get("m")) || null;
   return (
     <div>
       <PageHeader title="Match di scouting" subtitle="Team e player che si sono piaciuti a vicenda" />

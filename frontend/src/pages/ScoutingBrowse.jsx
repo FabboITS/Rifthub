@@ -1,13 +1,75 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Sparkles } from "lucide-react";
+import { Download, Heart, IdCard, MessageCircle, Sparkles } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
 import api, { errMsg } from "../api/client";
 import ChampionIcon from "../components/ChampionIcon";
 import { CompareRadar, MiniRadar } from "../components/Radar";
-import { Badge, Card, Empty, Loading, Modal, PageHeader, QueryState, Select } from "../components/ui";
+import { Badge, Card, Empty, Field, Loading, Modal, PageHeader, QueryState, Select } from "../components/ui";
+import { useAuth } from "../context/AuthContext";
 import { RANK_OPTIONS, REGIONS, ROLES, prettyRank } from "../lib/format";
-import { useList } from "../lib/hooks";
+import { useChampions, useList } from "../lib/hooks";
+
+const RANKS = [
+  ...["IRON", "BRONZE", "SILVER", "GOLD", "PLATINUM", "EMERALD", "DIAMOND"].flatMap((t) => [4, 3, 2, 1].map((d) => `${t}_${d}`)),
+  "MASTER", "GRANDMASTER", "CHALLENGER",
+].map((r) => [r, prettyRank(r)]);
+
+/** The user's own "identity card": what coaches and analysts scroll through when scouting. */
+function MyCardModal({ card, onClose }) {
+  const qc = useQueryClient();
+  const champs = useChampions();
+  const [f, setF] = useState(card || {
+    nickname: "", real_name: "", age: "", role: "MID", region: "EUW", rank: "GOLD_4", champion_pool: [], bio: "", looking_for_team: true,
+  });
+  const [champ, setChamp] = useState("");
+  const set = (k) => (v) => setF({ ...f, [k]: v });
+  const save = useMutation({
+    mutationFn: () => {
+      const body = { ...f, age: f.age || null };
+      return card ? api.patch(`/scouting/cards/${card.id}/`, body) : api.post("/scouting/cards/", body);
+    },
+    onSuccess: () => {
+      toast.success("Carta salvata: ora i team possono trovarti");
+      qc.invalidateQueries({ queryKey: ["my-card"] });
+      qc.invalidateQueries({ queryKey: ["cards"] });
+      onClose();
+    },
+    onError: (e) => toast.error(errMsg(e)),
+  });
+  const addChamp = () => { if (champ && !f.champion_pool.includes(champ) && f.champion_pool.length < 5) set("champion_pool")([...f.champion_pool, champ]); };
+  return (
+    <Modal open onClose={onClose} title={card ? "La mia carta" : "Crea la tua carta"}>
+      <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="Nickname"><input className="input" value={f.nickname} onChange={(e) => set("nickname")(e.target.value)} required /></Field>
+          <Field label="Nome reale"><input className="input" value={f.real_name} onChange={(e) => set("real_name")(e.target.value)} /></Field>
+          <Field label="Ruolo"><Select value={f.role} onChange={set("role")} options={ROLES} /></Field>
+          <Field label="Rank"><Select value={f.rank} onChange={set("rank")} options={RANKS} /></Field>
+          <Field label="Regione"><Select value={f.region} onChange={set("region")} options={REGIONS} /></Field>
+          <Field label="Età"><input className="input" type="number" min={10} max={99} value={f.age ?? ""} onChange={(e) => set("age")(e.target.value)} /></Field>
+        </div>
+        <Field label="Champion pool (max 5)">
+          <div className="flex gap-2">
+            <Select value={champ} onChange={setChamp} options={(champs.data?.champions || []).map((c) => [c.id, c.name])} placeholder="Campione" />
+            <button type="button" className="btn-ghost" onClick={addChamp}>+</button>
+          </div>
+        </Field>
+        <div className="flex flex-wrap gap-1">
+          {f.champion_pool.map((c) => (
+            <button type="button" key={c} title="Rimuovi" onClick={() => set("champion_pool")(f.champion_pool.filter((x) => x !== c))}><ChampionIcon name={c} size={32} /></button>
+          ))}
+        </div>
+        <Field label="Bio"><textarea className="input" rows={3} value={f.bio} onChange={(e) => set("bio")(e.target.value)} /></Field>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={f.looking_for_team} onChange={(e) => set("looking_for_team")(e.target.checked)} /> Sto cercando un team
+        </label>
+        <button className="btn-primary w-full" disabled={save.isPending}>Salva</button>
+      </form>
+    </Modal>
+  );
+}
 
 const ORDERING = [
   ["-rank_score", "Rank"], ["-stats__winrate", "Winrate"], ["-stats__kda", "KDA"], ["-stats__cs_per_min", "CS/min"],
@@ -59,6 +121,12 @@ function PlayerModal({ card, onClose }) {
 }
 
 export default function ScoutingBrowse() {
+  const { user } = useAuth();
+  const myCard = useQuery({
+    queryKey: ["my-card"],
+    queryFn: () => api.get("/scouting/cards/mine/").then((r) => r.data, (e) => (e.response?.status === 404 ? null : Promise.reject(e))),
+  });
+  const [editCard, setEditCard] = useState(false);
   const [f, setF] = useState({ role: "", region: "", rank_min: "", rank_max: "", looking_for_team: "", champion: "", ordering: "-rank_score" });
   const cards = useList("cards", "/scouting/cards/", { ...f, page_size: 60 });
   const [compare, setCompare] = useState([]);
@@ -73,7 +141,13 @@ export default function ScoutingBrowse() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Marketplace player" subtitle="Filtri avanzati e confronto statistiche" />
+      <PageHeader title="Marketplace player" subtitle="Filtri avanzati e confronto statistiche">
+        <button className="btn-primary" onClick={() => setEditCard(true)} disabled={myCard.isPending}>
+          <IdCard className="h-4 w-4" /> {myCard.data ? "La mia carta" : "Crea la tua carta"}
+        </button>
+        {user.is_staff && <Link to="/scouting" className="btn-ghost"><Heart className="h-4 w-4" /> Swipe</Link>}
+        {(user.is_staff || myCard.data) && <Link to="/scouting/matches" className="btn-gold"><MessageCircle className="h-4 w-4" /> Chat</Link>}
+      </PageHeader>
       <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-7">
         <Select value={f.role} onChange={set("role")} options={ROLES} placeholder="Ruolo" />
         <Select value={f.region} onChange={set("region")} options={REGIONS} placeholder="Regione" />
@@ -128,6 +202,7 @@ export default function ScoutingBrowse() {
         ) : <Empty>Nessun player con questi filtri.</Empty>}
       </QueryState>
       {open && <PlayerModal card={open} onClose={() => setOpen(null)} />}
+      {editCard && <MyCardModal card={myCard.data} onClose={() => setEditCard(false)} />}
     </div>
   );
 }

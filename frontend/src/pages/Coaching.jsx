@@ -73,7 +73,7 @@ export default function Coaching() {
   return (
     <div>
       <PageHeader title="Coaching" subtitle="Sessioni 1:1, homework e action item">
-        {user.role !== "PLAYER" && <button className="btn-primary" onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> Nuova sessione</button>}
+        {user.is_staff && <button className="btn-primary" onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> Nuova sessione</button>}
       </PageHeader>
       <QueryState query={sessions}>
         {(list) => list.length ? (

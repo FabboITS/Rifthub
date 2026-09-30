@@ -10,7 +10,10 @@ def get_provider(name=None):
     name = (name or settings.AI_PROVIDER).lower()
     common = {"model": settings.AI_MODEL, "timeout": settings.AI_TIMEOUT}
     if name == "ollama":
-        return OllamaProvider(settings.OLLAMA_BASE_URL, **common)
+        return OllamaProvider(
+            settings.OLLAMA_BASE_URL, num_thread=settings.OLLAMA_NUM_THREAD,
+            keep_alive=settings.OLLAMA_KEEP_ALIVE, **common,
+        )
     if name == "openai":
         return OpenAICompatProvider("https://api.openai.com/v1", settings.OPENAI_API_KEY, **common)
     if name == "openrouter":

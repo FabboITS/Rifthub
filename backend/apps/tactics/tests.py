@@ -55,3 +55,12 @@ def test_shadow_session_coach_controls_player_polls(make_team, make_user, client
     assert len(state["board"]["frames"]) == 2
     assert client_for(make_user()).get(f"/api/shadow-sessions/{s['id']}/state/").status_code == 404
     assert TacticBoard.objects.count() == 1
+
+
+def test_only_team_staff_create_boards(make_team, make_user, client_for):
+    team = make_team()
+    player = make_user(role="PLAYER")
+    team.memberships.create(user=player, role_in_team="TOP")
+    body = {"team": team.id, "title": "Setup drago"}
+    assert client_for(player).post("/api/tactic-boards/", body).status_code == 403
+    assert client_for(team.owner).post("/api/tactic-boards/", body).status_code == 201

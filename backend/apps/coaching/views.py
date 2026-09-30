@@ -2,7 +2,7 @@ from django.db.models import Q
 from rest_framework import viewsets
 from rest_framework.exceptions import PermissionDenied
 
-from apps.core.permissions import TeamScopedMixin, can_manage_team, is_admin, is_team_member
+from apps.core.permissions import TeamScopedMixin, can_manage_team, is_admin, is_staff_anywhere, is_team_member
 
 from .models import ActionItem, CoachingSession, VODComment, VODReview
 from .serializers import ActionItemSerializer, CoachingSessionSerializer, VODCommentSerializer, VODReviewSerializer
@@ -62,6 +62,8 @@ class CoachingSessionViewSet(viewsets.ModelViewSet):
         return qs if is_admin(user) else qs.filter(Q(coach=user) | Q(student=user))
 
     def perform_create(self, serializer):
+        if not is_staff_anywhere(self.request.user):
+            raise PermissionDenied("Solo coach e analyst di un team possono creare sessioni.")
         serializer.save(coach=self.request.user)
 
     def _check_coach(self, session):

@@ -7,9 +7,11 @@ class OllamaProvider(LLMProvider):
     name = "ollama"
     default_model = "llama3.2:3b"
 
-    def __init__(self, base_url, **kw):
+    def __init__(self, base_url, num_thread=0, keep_alive="30m", **kw):
         super().__init__(**kw)
         self.base_url = base_url.rstrip("/")
+        self.num_thread = num_thread
+        self.keep_alive = keep_alive
 
     @staticmethod
     def _message(m):
@@ -21,7 +23,14 @@ class OllamaProvider(LLMProvider):
         return out
 
     def chat(self, messages, tools=None, **kw):
-        payload = {"model": self.model, "messages": [self._message(m) for m in messages], "stream": False}
+        payload = {
+            "model": self.model,
+            "messages": [self._message(m) for m in messages],
+            "stream": False,
+            "keep_alive": self.keep_alive,  # keep the model in RAM between requests
+        }
+        if self.num_thread:
+            payload["options"] = {"num_thread": self.num_thread}
         if tools:
             payload["tools"] = tools
         try:

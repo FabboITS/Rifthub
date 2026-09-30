@@ -58,7 +58,8 @@ Il compose funziona anche senza `.env` (valori di default), ma copiare `.env.exa
 - Il primo avvio scarica le immagini Docker (~2 GB con Ollama) e il modello **`llama3.2:3b` (~2,0 GB)**. Servono circa **4 GB di RAM libera** per il modello (8 GB consigliati per `qwen2.5:7b`, ~4,7 GB su disco).
 - L'applicazione è utilizzabile subito: finché il modello non è pronto le funzioni AI rispondono con un errore gestito (`503 Provider AI non raggiungibile` e messaggio "modello non ancora disponibile").
 - Stato del download: `docker compose logs -f ollama-init` (termina con "Modello pronto.").
-- Senza GPU una risposta dell'agente richiede tipicamente 10–60 s (timeout configurabile con `AI_TIMEOUT`).
+- Senza GPU una risposta dell'agente richiede tipicamente 10–40 s (la prima è più lenta perché carica il modello; timeout configurabile con `AI_TIMEOUT`).
+- **CPU ibride (Intel Core Ultra / 12ª gen+, core P/E):** lasciare a Ollama tutti i core logici può renderlo 20–30 volte più lento. `OLLAMA_NUM_THREAD` (default `8` in `.env.example`) limita i thread: su un Core Ultra 7 255H si passa da ~0,7 a ~18 token/s.
 
 ### Credenziali demo
 
@@ -97,6 +98,8 @@ Password per tutti: **`Demo1234!`**
 | `AI_PROVIDER` | no | `ollama` | `ollama`, `openai`, `anthropic`, `openrouter`, `fake` |
 | `AI_MODEL` | no | default del provider | `llama3.2:3b`, `qwen2.5:7b`, `gpt-4o-mini`, `claude-opus-5-5`, … |
 | `OLLAMA_BASE_URL` | no | `http://ollama:11434` | Endpoint Ollama |
+| `OLLAMA_NUM_THREAD` | no | automatico (`8` in `.env.example`) | Thread CPU per Ollama: sulle CPU ibride (core P/E) usa il numero di core "performance" |
+| `OLLAMA_KEEP_ALIVE` | no | `30m` | Per quanto tempo il modello resta in RAM dopo l'ultima richiesta |
 | `AI_TIMEOUT` | no | `120` | Timeout (s) di ogni chiamata al provider |
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / `OPENROUTER_API_KEY` | solo per quel provider | — | Chiavi dei provider online |
 | `RIOT_API_KEY` | no | — | Chiave Riot; senza si usa il mock deterministico |
@@ -164,7 +167,7 @@ ruff check .
 python manage.py makemigrations --check --dry-run
 
 # Frontend (dalla cartella frontend/)
-npm test                            # vitest: render App, redirect ProtectedRoute, deck swipe
+npm test                            # vitest: render App, redirect ProtectedRoute, deck swipe, QueryState
 npm run lint
 npm run build
 
@@ -253,6 +256,8 @@ Tutto è protetto da JWT (`Authorization: Bearer <access>`) tranne `auth/registe
 - **Fit score del deck**: 50 se il ruolo è scoperto nel roster (10 altrimenti) + 30 vicinanza/superiorità di rank rispetto al team + 10 se cerca team + 10 se ha già messo LIKE al team.
 - **Seed**: Nova Academy ha volutamente il ruolo SUPPORT scoperto; oltre alle 30 player card del mercato vengono create le card dei giocatori dei roster (servono per il rank medio dei team). I video demo puntano a un video pubblico segnaposto: sostituiscili con VOD reali.
 - **Conversazioni dell'agente**: salvate come `AIReport` (`AGENT_CHAT`), le ultime 6 battute vengono rimandate al modello come contesto.
+- **Aggiornamento automatico**: ogni pagina ricarica i propri dati ogni 15 s e quando si torna sulla scheda del browser; dopo qualsiasi salvataggio tutti i dati vengono aggiornati. Un errore in una pagina viene mostrato nella pagina stessa senza bloccare la navigazione.
+- **Iscrizione ai tornei**: la pagina del torneo elenca tutti i team presenti su RiftHub; l'organizzatore può iscrivere qualsiasi team, gli altri utenti solo i team che gestiscono.
 - **Secret key**: nessun valore hardcoded; se manca ne viene generata una casuale all'avvio (gunicorn usa `--preload` così i worker la condividono).
 
 ### Troubleshooting
@@ -260,7 +265,7 @@ Tutto è protetto da JWT (`Authorization: Bearer <access>`) tranne `auth/registe
 | Problema | Soluzione |
 |---|---|
 | **Porte occupate** (5173, 8000, 5432 interna, 11434) | Libera la porta o cambia il mapping in `docker-compose.yml` (es. `"8080:80"`). Se hai un Ollama locale sulla 11434, fermalo o rimuovi il mapping `ports` del servizio `ollama`. |
-| **Ollama lento / senza GPU** | Normale in CPU: usa `llama3.2:3b`, aumenta `AI_TIMEOUT`, oppure passa a un provider online. Con GPU NVIDIA installa `nvidia-container-toolkit` e decommenta il blocco `deploy` del servizio `ollama`. |
+| **Ollama lento / senza GPU** | Imposta `OLLAMA_NUM_THREAD` al numero di core "performance" della CPU (misura con diversi valori: su CPU ibride fa una differenza enorme), usa `llama3.2:3b`, aumenta `AI_TIMEOUT`, oppure passa a un provider online. Con GPU NVIDIA installa `nvidia-container-toolkit` e decommenta il blocco `deploy` del servizio `ollama`. |
 | **"Provider AI non raggiungibile"** | Il modello è ancora in download (`docker compose logs -f ollama-init`) o il provider non è configurato: controlla `GET /api/ai/status/`. |
 | **Errori CORS** | Usa il frontend su :5173 (le chiamate passano dal proxy nginx, stessa origine). Se servi il frontend da un'altra origine aggiungila a `CORS_ALLOWED_ORIGINS`. |
 | **DB non pronto** | L'entrypoint attende il DB e il compose usa l'healthcheck; se i log mostrano errori persistenti: `docker compose restart backend` o reset con `docker compose down -v`. |

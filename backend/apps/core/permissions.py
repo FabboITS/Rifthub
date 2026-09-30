@@ -26,6 +26,23 @@ def can_manage_team(user, team):
     )
 
 
+def is_team_staff(user, team):
+    """Admin or an active COACH/ANALYST of the team: the only ones who run scouting, tactics and coaching."""
+    if is_admin(user):
+        return True
+    return user.is_authenticated and team.memberships.filter(
+        user=user, is_active=True, role_in_team__in=EDITOR_TEAM_ROLES
+    ).exists()
+
+
+def is_staff_anywhere(user):
+    from apps.teams.models import Membership
+
+    return is_admin(user) or Membership.objects.filter(
+        user=user, is_active=True, role_in_team__in=EDITOR_TEAM_ROLES
+    ).exists()
+
+
 def resolve_path(obj, path):
     """Follow a django-style path ("board__team") through attributes."""
     for part in path.split("__"):
@@ -42,13 +59,14 @@ class TeamEditPermission(BasePermission):
         if request.method in SAFE_METHODS:
             return True
         team = obj if not view.team_path else resolve_path(obj, view.team_path)
-        return can_manage_team(request.user, team)
+        return view.editor_check(request.user, team)
 
 
 class TeamScopedMixin:
     """ViewSet mixin: checks team ownership on create/update via `team_path`."""
 
     team_path = "team"
+    editor_check = staticmethod(can_manage_team)
     permission_classes = [IsAuthenticated, TeamEditPermission]
 
     def _check_team(self, validated_data):
@@ -56,7 +74,7 @@ class TeamScopedMixin:
         if first not in validated_data:
             return
         team = resolve_path(validated_data, self.team_path)
-        if team is not None and not can_manage_team(self.request.user, team):
+        if team is not None and not self.editor_check(self.request.user, team):
             raise PermissionDenied("Non puoi modificare i dati di questo team.")
 
     def perform_create(self, serializer):
