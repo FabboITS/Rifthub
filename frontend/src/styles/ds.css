@@ -1,0 +1,58 @@
+/* Gaming Design System tokens (imported from Claude Design: RiftHub Home). */
+:root {
+  /* Colors */
+  --night-950:#0b0920;--night-900:#120f2e;--night-800:#19194d;--night-700:#241f5e;--night-600:#33276f;
+  --violet-700:#3e1d63;--violet-600:#542273;--violet-500:#7a3aa8;--violet-400:#a26bd6;
+  --cyan-600:#1f8fc4;--cyan-500:#3dbfeb;--cyan-400:#6fd6f6;--cyan-200:#bffffe;
+  --blue-600:#3b5fc4;--blue-500:#4f7bdd;--blue-400:#7f9ef0;
+  --magenta-700:#6a1452;--magenta-500:#c23bd4;--magenta-400:#e06be8;
+  --ember-500:#ff7a45;--ember-300:#feb4a2;--gold-500:#e0a43a;--gold-300:#f6d38a;
+  --ink-0:#ffffff;--ink-100:#e7deea;--ink-200:#c9c2d6;--ink-300:#a59fba;--ink-500:#757090;--ink-700:#3a3456;--ink-900:#16132c;
+  --green-500:#3ee6a8;--red-500:#ff4d6d;--amber-500:#f2b84b;
+
+  --surface-page:var(--night-800);
+  --surface-frame:var(--night-950);
+  --surface-glass:rgba(18,15,46,.55);
+  --surface-glass-strong:rgba(18,15,46,.82);
+  --surface-raised:rgba(255,255,255,.06);
+  --surface-hover:rgba(255,255,255,.10);
+  --surface-input:rgba(11,9,32,.6);
+  --border-subtle:rgba(255,255,255,.12);
+  --border-strong:rgba(255,255,255,.45);
+  --text-primary:var(--ink-0);
+  --text-secondary:var(--ink-200);
+  --text-muted:var(--ink-300);
+
+  --grad-cta:linear-gradient(90deg,#3dbfeb 0%,#9ff3fb 38%,#6fa3ee 70%,#4f7bdd 100%);
+  --grad-page:radial-gradient(120% 80% at 50% 0%,#542273 0%,#2a1d5c 40%,#19194d 75%,#120f2e 100%);
+  --grad-scrim-left:linear-gradient(90deg,rgba(11,9,32,.92) 0%,rgba(11,9,32,.55) 40%,rgba(11,9,32,0) 70%);
+  --grad-scrim-bottom:linear-gradient(0deg,rgba(11,9,32,.95) 0%,rgba(11,9,32,0) 60%);
+  --grad-tint-magenta:linear-gradient(135deg,#6a1452 0%,#400b2d 55%,#e0a43a 140%);
+  --grad-tint-cyan:linear-gradient(135deg,#012d4f 0%,#1f8fc4 100%);
+  --grad-tint-violet:linear-gradient(135deg,#241f5e 0%,#7a3aa8 100%);
+  --grad-tint-gold:linear-gradient(135deg,#3b220b 0%,#e0a43a 120%);
+
+  /* Typography */
+  --font-display:'Urbanist','Gilroy',system-ui,sans-serif;
+  --font-body:'Urbanist','Gilroy',system-ui,sans-serif;
+  --font-script:'Yellowtail','Brush Script MT',cursive;
+  --ls-label:.14em;
+
+  /* Spacing & shape */
+  --radius-xs:6px;--radius-sm:10px;--radius-md:14px;--radius-lg:20px;--radius-xl:28px;--radius-pill:999px;
+  --rail-width:72px;--nav-height:88px;
+
+  /* Effects */
+  --shadow-card:0 12px 32px rgba(5,3,20,.5);
+  --shadow-frame:0 40px 100px rgba(5,3,20,.7);
+  --glow-cyan:0 0 0 1px rgba(111,214,246,.6),0 0 24px rgba(61,191,235,.45);
+  --glow-cta:0 8px 28px rgba(61,191,235,.45),inset 0 1px 0 rgba(255,255,255,.5);
+  --text-glow:0 0 18px rgba(127,227,255,.55);
+  --blur-glass:blur(16px);
+  --ease-out:cubic-bezier(.2,.8,.2,1);
+  --dur-fast:150ms;--dur-base:250ms;--dur-slow:450ms;
+}
+
+@keyframes emberDrift { 0% { transform: translateY(0); opacity: 0 } 15% { opacity: 1 } 100% { transform: translateY(-120px); opacity: 0 } }
+@keyframes heroIn { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: none } }
+@media (prefers-reduced-motion: reduce) { .ds-motion, .ds-motion * { animation: none !important; transition: none !important } }

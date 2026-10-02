@@ -40,7 +40,7 @@ export default function Bracket({ matches, onMatchClick }) {
             const b = pos(byId[m.next_match]);
             const x1 = a.x + W, y1 = a.y + H / 2, x2 = b.x, y2 = b.y + H / 2, mx = x1 + GAP_X / 2;
             return <path key={m.id} d={`M${x1},${y1} H${mx} V${y2} H${x2}`} fill="none"
-              stroke={m.winner ? "#c8aa6e" : "#475569"} strokeWidth="2" />;
+              stroke={m.winner ? "#e0a43a" : "#4a4370"} strokeWidth="2" />;
           })}
         </svg>
         {matches.map((m) => {

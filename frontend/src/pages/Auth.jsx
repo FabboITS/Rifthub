@@ -1,4 +1,3 @@
-import { Brain } from "lucide-react";
 import { useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { errMsg } from "../api/client";
@@ -7,16 +6,11 @@ import { useAuth } from "../context/AuthContext";
 
 function Shell({ title, children }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(ellipse_at_top,_#0f3a4a,_#0f172a_60%)] p-4">
-      <div className="card w-full max-w-md border-gold/30">
-        <div className="mb-6 flex items-center gap-3">
-          <Brain className="h-9 w-9 text-hex" />
-          <div>
-            <p className="font-display text-2xl font-bold text-gold-light">RiftHub</p>
-            <p className="text-xs text-slate-400">Il gestionale per il League of Legends competitivo</p>
-          </div>
-        </div>
-        <h1 className="mb-4 text-xl font-semibold">{title}</h1>
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="card w-full max-w-md rounded-[28px] p-8 shadow-[var(--shadow-frame),0_0_60px_rgba(84,34,115,.6)]">
+        <Link to="/" className="text-sm font-black tracking-[.14em] text-white">RIFTHUB</Link>
+        <p className="mb-6 mt-1 text-xs text-slate-400">Il gestionale per il League of Legends competitivo</p>
+        <h1 className="mb-6 text-3xl font-black uppercase leading-tight">{title}</h1>
         {children}
       </div>
     </div>
@@ -31,7 +25,7 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to="/dashboard" replace />;
 
   const submit = async (e) => {
     e.preventDefault();
@@ -39,7 +33,7 @@ export function Login() {
     setError(null);
     try {
       await login(email, password);
-      navigate(location.state?.from || "/", { replace: true });
+      navigate(location.state?.from || "/dashboard", { replace: true });
     } catch (err) {
       setError(err.response?.status === 401 ? "Credenziali non valide." : errMsg(err));
     } finally {
@@ -68,7 +62,7 @@ export function Register() {
   const [form, setForm] = useState({ email: "", password: "", display_name: "", role: "PLAYER" });
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to="/dashboard" replace />;
   const set = (k) => (v) => setForm({ ...form, [k]: v?.target ? v.target.value : v });
 
   const submit = async (e) => {

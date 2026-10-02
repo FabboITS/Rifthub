@@ -7,7 +7,7 @@ export function Card({ title, action, children, className = "" }) {
     <section className={`card ${className}`}>
       {(title || action) && (
         <header className="mb-3 flex items-center justify-between gap-2">
-          {title && <h2 className="text-base font-semibold">{title}</h2>}
+          {title && <h2 className="text-[13px] font-extrabold uppercase tracking-[.14em]">{title}</h2>}
           {action}
         </header>
       )}
@@ -20,8 +20,9 @@ export function PageHeader({ title, subtitle, children }) {
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="font-display text-2xl font-bold tracking-wide md:text-3xl">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-slate-400">{subtitle}</p>}
+        <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-hex-dark/15 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-[.14em] text-hex"><span className="h-1.5 w-1.5 rounded-full bg-hex-dark shadow-[0_0_8px_#3dbfeb]" />RiftHub</span>
+        <h1 className="text-4xl font-black uppercase leading-[.95] tracking-tight md:text-5xl">{title}</h1>
+        {subtitle && <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-slate-300">{subtitle}</p>}
       </div>
       <div className="flex flex-wrap gap-2">{children}</div>
     </div>
@@ -58,8 +59,8 @@ export function QueryState({ query, children }) {
 }
 
 const BADGE = {
-  hex: "bg-hex/15 text-hex",
-  gold: "bg-gold/15 text-gold-light",
+  hex: "bg-hex-dark/15 text-hex",
+  gold: "bg-gold/15 text-[#f6d38a]",
   red: "bg-rose-500/15 text-rose-300",
   green: "bg-emerald-500/15 text-emerald-300",
   slate: "bg-slate-600/40 text-slate-300",
@@ -79,16 +80,16 @@ export function Modal({ open, onClose, title, children, wide }) {
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(8,6,24,.6)] p-4 backdrop-blur-sm" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`card max-h-[90vh] w-full overflow-y-auto ${wide ? "max-w-4xl" : "max-w-lg"}`}
+        className={`card rounded-[28px] !bg-[var(--surface-glass-strong)] max-h-[90vh] w-full overflow-y-auto ${wide ? "max-w-4xl" : "max-w-lg"}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{title}</h2>
+          <h2 className="text-2xl font-black uppercase leading-tight">{title}</h2>
           <button className="btn-ghost p-1" onClick={onClose} aria-label="Chiudi">
             <X className="h-5 w-5" />
           </button>
@@ -124,7 +125,7 @@ export function ScoreBar({ value, max = 100 }) {
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
   const color = pct >= 75 ? "bg-emerald-400" : pct >= 50 ? "bg-hex" : pct >= 30 ? "bg-amber-400" : "bg-rose-400";
   return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-700">
+    <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
       <div className={`h-full ${color}`} style={{ width: `${pct}%` }} />
     </div>
   );

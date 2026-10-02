@@ -1,7 +1,7 @@
 import { MutationCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { Toaster } from "react-hot-toast";
-import { Outlet, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -12,6 +12,7 @@ import Coaching from "./pages/Coaching";
 import Dashboard from "./pages/Dashboard";
 import Draft from "./pages/Draft";
 import FantaLol from "./pages/FantaLol";
+import Home from "./pages/Home";
 import Scouting from "./pages/Scouting";
 import ScoutingBrowse from "./pages/ScoutingBrowse";
 import ScoutingMatches from "./pages/ScoutingMatches";
@@ -67,8 +68,10 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route index element={<Home />} />
+          <Route path="/home" element={<Navigate to="/" replace />} />
           <Route element={<Layout />}>
-            <Route index element={<Dashboard />} />
+            <Route path="dashboard" element={<Dashboard />} />
             <Route path="teams" element={<Teams />} />
             <Route path="teams/:id" element={<TeamDetail />} />
             <Route path="scrims" element={<Scrims />} />
