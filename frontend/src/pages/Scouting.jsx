@@ -1,12 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Grid3x3, MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import api, { errMsg } from "../api/client";
 import ChampionIcon from "../components/ChampionIcon";
 import SwipeDeck from "../components/SwipeDeck";
-import { Badge, Card, Empty, Loading, PageHeader, QueryState, Select } from "../components/ui";
+import { Button, Icon, IconButton, Tag } from "../components/ds";
+import { Badge, Card, Empty, Loading, PageHeader, QueryState, Script } from "../components/ui";
+import { ROLES } from "../lib/format";
 import { prettyRank } from "../lib/format";
 import { useStaffTeams } from "../lib/hooks";
 
@@ -23,23 +24,22 @@ function LikedPlayers({ team }) {
     onError: (e) => toast.error(errMsg(e)),
   });
   return (
-    <Card title="Player che ti piacciono">
-      <QueryState query={liked}>
+    <Card title={<><Icon name="sparkles" size={16} color="var(--gold-500)" />Player che ti piacciono</>} delay={240}>
+      <QueryState query={liked} cards={1}>
         {(list) => list.length ? (
-          <ul className="max-h-[560px] space-y-2 overflow-y-auto pr-1">
-            {list.map((c) => (
-              <li key={c.id} className="flex items-center gap-2 rounded-lg bg-slate-900/50 p-2">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold">{c.nickname} {c.liked_back && <Badge color="green">Match</Badge>}</p>
-                  <p className="text-xs text-slate-400">{c.role} · {prettyRank(c.rank)} · {c.region}</p>
+          <div className="flex max-h-[560px] flex-col gap-2 overflow-y-auto pr-1">
+            {list.map((c, i) => (
+              <div key={c.id} className="flex items-center gap-3 rounded-xl px-3 py-2.5" style={{ background: "rgba(11,9,32,.45)", animation: `rhToastIn calc(var(--rh-k) * 420ms) var(--ease-out) calc(var(--rh-k) * ${Math.min(i, 8) * 60}ms) both` }}>
+                <span className="grid h-[34px] w-[34px] flex-none place-items-center rounded-full border border-magenta-light text-sm font-black" style={{ background: "var(--grad-tint-magenta)" }}>{c.nickname[0]}</span>
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="flex items-center gap-1.5 truncate text-sm font-bold">{c.nickname} {c.liked_back && <Badge color="green">Match</Badge>}</span>
+                  <span className="text-xs text-slate-400">{c.role} · {prettyRank(c.rank)} · {c.region}</span>
                   <div className="mt-1 flex gap-1">{c.champion_pool.slice(0, 4).map((ch) => <ChampionIcon key={ch} name={ch} size={20} />)}</div>
                 </div>
-                <button className="btn-gold py-1 text-xs" onClick={() => chat.mutate(c)} disabled={chat.isPending}>
-                  <MessageCircle className="h-3 w-3" /> {c.match_id ? "Apri chat" : "Chatta"}
-                </button>
-              </li>
+                <IconButton icon="message-square-more" size={32} label={c.match_id ? "Apri chat" : "Chatta"} onClick={() => chat.mutate(c)} disabled={chat.isPending} />
+              </div>
             ))}
-          </ul>
+          </div>
         ) : <Empty>Metti like a un player per vederlo qui.</Empty>}
       </QueryState>
     </Card>
@@ -51,6 +51,8 @@ export default function Scouting() {
   const teams = useStaffTeams();
   const [team, setTeam] = useState("");
   const [seen, setSeen] = useState([]);
+  const [role, setRole] = useState("");
+  const navigate = useNavigate();
   useEffect(() => { if (!team && teams.data.length) setTeam(teams.data[0].id); }, [team, teams.data]);
   const deck = useQuery({
     queryKey: ["deck", team],
@@ -78,27 +80,33 @@ export default function Scouting() {
   const onSwipe = (card, direction) => {
     setSeen((s) => [...s, card.id]);
     swipe.mutate({ card, direction });
-    const remaining = (deck.data?.results || []).filter((c) => c.id !== card.id && !seen.includes(c.id));
+    const remaining = (deck.data?.results || []).filter((c) => c.id !== card.id && !seen.includes(c.id) && (!role || c.role === role));
     if (!remaining.length) setTimeout(() => { setSeen([]); qc.invalidateQueries({ queryKey: ["deck"] }); }, 400);
   };
 
   return (
     <div>
-      <PageHeader title="Scouting" subtitle="Scorri i player: LIKE reciproco = match e chat">
-        <div className="w-52"><Select value={team} onChange={(v) => { setTeam(v); setSeen([]); }} options={teams.data.map((t) => [t.id, t.name])} /></div>
-        <Link to="/scouting/browse" className="btn-ghost"><Grid3x3 className="h-4 w-4" /> Sfoglia</Link>
-        <Link to="/scouting/matches" className="btn-gold"><MessageCircle className="h-4 w-4" /> Match</Link>
+      <PageHeader eyebrow="Scouting" tone="magenta" title={<>Scopri <Script>il</Script> talento</>}
+        subtitle="Trascina la card a destra per i player che ti interessano, a sinistra per scartarli. LIKE reciproco = match e chat.">
+        {teams.data.length > 1 && teams.data.map((t) => <Tag key={t.id} selected={t.id === team} onClick={() => { setTeam(t.id); setSeen([]); }}>{t.tag}</Tag>)}
+        <Button size="sm" variant="outline" onClick={() => navigate("/scouting/browse")}>Sfoglia</Button>
+        <Button size="sm" onClick={() => navigate("/scouting/matches")}>Match</Button>
       </PageHeader>
+      <div className="mb-5 flex flex-wrap gap-1.5" style={{ animation: "rhUp calc(var(--rh-k) * 560ms) var(--ease-out) calc(var(--rh-k) * 180ms) both" }}>
+        {[["", "Tutti"], ...ROLES.map((r) => [r, r])].map(([v, l]) => <Tag key={l} selected={role === v} onClick={() => setRole(v)}>{l}</Tag>)}
+      </div>
       <QueryState query={deck}>
         {(d) => (
           <>
             {d.missing_roles.length > 0 && (
-              <p className="mb-4 text-center text-sm text-slate-400">
+              <p className="mb-4 flex flex-wrap items-center gap-1.5 text-sm text-slate-400">
                 Ruoli scoperti nel roster: {d.missing_roles.map((r) => <Badge key={r} color="amber">{r}</Badge>)}
               </p>
             )}
-            <div className="grid items-start gap-6 lg:grid-cols-[1fr_340px]">
-              <SwipeDeck cards={d.results.filter((c) => !seen.includes(c.id))} onSwipe={onSwipe} />
+            <div className="grid items-start gap-6" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(min(320px,100%),1fr))" }}>
+              <div style={{ animation: "rhUp calc(var(--rh-k) * 600ms) var(--ease-out) calc(var(--rh-k) * 160ms) both" }}>
+                <SwipeDeck cards={d.results.filter((c) => !seen.includes(c.id) && (!role || c.role === role))} onSwipe={onSwipe} />
+              </div>
               <LikedPlayers team={team} />
             </div>
           </>

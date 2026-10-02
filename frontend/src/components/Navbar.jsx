@@ -1,58 +1,73 @@
-import {
-  Bot, ClipboardList, Crosshair, ExternalLink, Heart, LayoutDashboard, LogOut, Map, Menu, Swords, Trophy, Users, Video,
-} from "lucide-react";
-import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { useLayoutEffect, useRef, useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { Icon, IconButton } from "./ds";
 
 export const FANTALOL_URL = "https://fantalol.win";
 
 const LINKS = [
-  ["/dashboard", "Dashboard", LayoutDashboard],
-  ["/teams", "Team", Users],
-  ["/scrims", "Scrim", Swords],
-  ["/tournaments", "Tornei", Trophy],
-  ["/scouting", "Scouting", Heart],
-  ["/tactics", "Tattiche", Map],
-  ["/draft", "Draft", Crosshair],
-  ["/vod", "VOD", Video],
-  ["/coaching", "Coaching", ClipboardList],
-  ["/ai", "Assistente AI", Bot],
+  ["/dashboard", "Dashboard", "layout-dashboard"],
+  ["/teams", "Team", "users"],
+  ["/scrims", "Scrim", "swords"],
+  ["/tournaments", "Tornei", "trophy"],
+  ["/scouting", "Scouting", "heart"],
+  ["/tactics", "Tattiche", "map"],
+  ["/draft", "Draft", "crosshair"],
+  ["/vod", "VOD", "video"],
+  ["/coaching", "Coaching", "clipboard-list"],
+  ["/ai", "Assistente AI", "bot"],
 ];
+
+const pill = "relative flex h-9 items-center gap-2 whitespace-nowrap rounded-full px-3.5 text-[11px] font-extrabold uppercase tracking-[.14em] transition-colors";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
-  const [open, setOpen] = useState(false);
-  const link = ({ isActive }) =>
-    `relative flex items-center gap-2 rounded-full px-3 py-2 text-[11px] font-extrabold uppercase tracking-[.14em] transition ${
-      isActive ? "text-white [text-shadow:var(--text-glow)] after:absolute after:bottom-0 after:left-1/2 after:h-1 after:w-1 after:-translate-x-1/2 after:rounded-full after:bg-hex after:shadow-[0_0_8px_#6fd6f6] [&>svg]:text-hex"
-        : "text-slate-200/80 hover:bg-white/5 hover:text-white"
-    }`;
+  const { pathname } = useLocation();
+  const els = useRef({});
+  const [ind, setInd] = useState({ l: 0, w: 0, o: 0 });
+  const active = LINKS.find(([to]) => pathname === to || pathname.startsWith(to + "/"))?.[0];
+
+  // Slide the glowing pill under the active link.
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = els.current[active];
+      setInd(el ? { l: el.offsetLeft, w: el.offsetWidth, o: 1 } : (i) => ({ ...i, o: 0 }));
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [active]);
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/70 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2">
-        <NavLink to="/" className="text-sm font-black tracking-[.14em] text-white">RIFTHUB</NavLink>
-        <button className="btn-ghost ml-auto lg:hidden" onClick={() => setOpen(!open)} aria-label="Menu">
-          <Menu className="h-5 w-5" />
-        </button>
-        <div className={`${open ? "flex" : "hidden"} absolute left-0 right-0 top-full flex-col gap-1 border-b border-white/10 bg-slate-950 p-3 lg:static lg:ml-4 lg:flex lg:flex-1 lg:flex-row lg:flex-wrap lg:border-0 lg:bg-transparent lg:p-0`}>
-          {LINKS.map(([to, text, Icon]) => (
-            <NavLink key={to} to={to} className={link} onClick={() => setOpen(false)}>
-              <Icon className="h-4 w-4" /> {text}
-            </NavLink>
-          ))}
-          <a href={FANTALOL_URL} target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-full px-3 py-2 text-[11px] font-extrabold uppercase tracking-[.14em] text-magenta-light hover:bg-white/5">
-            FantaLol <ExternalLink className="h-3.5 w-3.5" />
-          </a>
-          <div className="flex items-center gap-2 lg:ml-auto">
-            <span className="h-8 w-8 rounded-full border border-hex" style={{ background: "var(--grad-tint-cyan)" }} />
-            <span className="text-[11px] font-extrabold uppercase tracking-[.14em] text-white">
-              {user?.display_name || user?.email} <span className="text-hex">· {user?.role}</span>
-            </span>
-            <button className="btn-ghost" onClick={logout} aria-label="Esci"><LogOut className="h-4 w-4" /></button>
+    <nav className="sticky top-0 z-40 border-b border-white/10 backdrop-blur-xl"
+      style={{ background: "rgba(11,9,32,.72)", animation: "rhDown calc(var(--rh-k) * 500ms) var(--ease-out) both" }}>
+      <div className="mx-auto flex max-w-[1280px] items-center gap-4 px-5 py-2">
+        <NavLink to="/" className="flex-none text-sm font-black tracking-[.14em] !text-white">RIFTHUB</NavLink>
+        <div className="rh-nav relative min-w-0 flex-1 overflow-x-auto">
+          <div className="relative flex w-max gap-0.5 py-1">
+            <span aria-hidden="true" className="pointer-events-none absolute top-1 h-9 rounded-full"
+              style={{ left: ind.l, width: ind.w, opacity: ind.o, background: "rgba(61,191,235,.12)", border: "1px solid rgba(111,214,246,.4)", boxShadow: "0 0 18px rgba(61,191,235,.25)", transition: "left calc(var(--rh-k) * 450ms) var(--ease-out), width calc(var(--rh-k) * 450ms) var(--ease-out), opacity 200ms" }} />
+            {LINKS.map(([to, text, icon]) => {
+              const on = to === active;
+              return (
+                <NavLink key={to} to={to} ref={(el) => { els.current[to] = el; }}
+                  className={`${pill} ${on ? "!text-white" : "!text-slate-200/80 hover:bg-white/5 hover:!text-white"}`}
+                  style={{ textShadow: on ? "var(--text-glow)" : "none" }}>
+                  <Icon name={icon} size={16} color={on ? "var(--cyan-400)" : "currentColor"} /> {text}
+                </NavLink>
+              );
+            })}
+            <a href={FANTALOL_URL} target="_blank" rel="noopener noreferrer" className={`${pill} !text-magenta-light hover:bg-white/5`}>
+              FantaLol <Icon name="external-link" size={14} />
+            </a>
           </div>
+        </div>
+        <div className="flex flex-none items-center gap-2.5">
+          <span className="h-8 w-8 rounded-full border border-hex" style={{ background: "var(--grad-tint-cyan)", boxShadow: "0 0 12px rgba(61,191,235,.35)" }} />
+          <span className="hidden whitespace-nowrap text-[11px] font-extrabold uppercase tracking-[.14em] text-white sm:inline">
+            {user?.display_name || user?.email} <span className="text-hex">· {user?.role}</span>
+          </span>
+          <IconButton icon="log-out" size={36} variant="ghost" label="Esci" onClick={logout} />
         </div>
       </div>
     </nav>

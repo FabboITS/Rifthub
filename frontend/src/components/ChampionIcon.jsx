@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useChampions } from "../lib/hooks";
 
-const PALETTE = ["#0ac8b9", "#c8aa6e", "#a78bfa", "#f87171", "#34d399", "#60a5fa", "#fbbf24"];
+const PALETTE = ["var(--grad-tint-cyan)", "var(--grad-tint-gold)", "var(--grad-tint-violet)", "var(--grad-tint-magenta)"];
 
 export function championColor(name = "") {
   let h = 0;
@@ -30,7 +30,7 @@ export default function ChampionIcon({ name, size = 32 }) {
       <span
         title={name}
         style={{ ...style, background: championColor(name), fontSize: size * 0.45 }}
-        className="inline-flex items-center justify-center rounded-full font-bold text-slate-900"
+        className="inline-flex items-center justify-center rounded-[10px] border border-white/15 font-extrabold text-white"
       >
         {(name || "?")[0]}
       </span>
@@ -38,6 +38,6 @@ export default function ChampionIcon({ name, size = 32 }) {
   }
   return (
     <img src={champ.icon} alt={champ.name} title={champ.name} style={style}
-      draggable={false} className="rounded-full border border-gold/40" onError={() => setFailedSrc(champ.icon)} />
+      draggable={false} className="rounded-[10px] border border-white/15" onError={() => setFailedSrc(champ.icon)} />
   );
 }

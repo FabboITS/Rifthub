@@ -27,3 +27,12 @@ export function youtubeId(url = "") {
   const m = url.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/);
   return m ? m[1] : null;
 }
+
+/** Possible final scores of a best-of series, team A wins first: "BO3" → [[2,0],[2,1],[1,2],[0,2]]. */
+export function resultOptions(fmt) {
+  const n = Number(String(fmt).replace(/\D/g, "")) || 3;
+  if (n % 2 === 0) return Array.from({ length: n + 1 }, (_, k) => [n - k, k]);
+  const w = Math.ceil(n / 2);
+  const range = [...Array(w).keys()];
+  return [...range.map((k) => [w, k]), ...range.reverse().map((k) => [k, w])];
+}

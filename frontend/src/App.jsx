@@ -1,7 +1,8 @@
 import { MutationCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
-import { Toaster } from "react-hot-toast";
+import { useLayoutEffect, useState } from "react";
+import toast, { Toaster, resolveValue } from "react-hot-toast";
 import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
+import { Embers, Toast } from "./components/ds";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -43,15 +44,29 @@ function createQueryClient() {
 
 function Layout() {
   const { pathname } = useLocation();
+  useLayoutEffect(() => window.scrollTo(0, 0), [pathname]);
   return (
     <ProtectedRoute>
+      <Embers />
       <Navbar />
-      <main className="mx-auto max-w-7xl px-4 py-6">
+      <main className="relative z-[1] mx-auto max-w-[1280px] px-5 pb-[72px] pt-8">
         <ErrorBoundary key={pathname}>
-          <Outlet />
+          <div style={{ animation: "rhPage calc(var(--rh-k) * 480ms) var(--ease-out) both" }}><Outlet /></div>
         </ErrorBoundary>
       </main>
     </ProtectedRoute>
+  );
+}
+
+const TOAST_TONE = { success: "success", error: "danger" };
+
+/** react-hot-toast rendered with the design-system Toast; an icon option of "🏆" etc. marks a reward. */
+function DsToast({ t }) {
+  const tone = t.icon ? "reward" : TOAST_TONE[t.type] || "info";
+  return (
+    <div style={{ animation: `${t.visible ? "rhToastIn" : "rhToastOut"} calc(var(--rh-k) * 380ms) var(--ease-out) both` }}>
+      <Toast tone={tone} title={resolveValue(t.message, t)} onClose={() => toast.dismiss(t.id)} />
+    </div>
   );
 }
 
@@ -64,7 +79,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Toaster position="top-right" toastOptions={{ style: { background: "#1e293b", color: "#f0e6d2" } }} />
+        <Toaster position="top-right" containerStyle={{ top: 72, right: 20 }}>{(t) => <DsToast t={t} />}</Toaster>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

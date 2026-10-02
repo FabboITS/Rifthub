@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { errMsg } from "../api/client";
-import { Badge, Button, Card, Dialog, HeroCard, Icon, IconButton, Input, SideRail, TopNav } from "../components/ds";
+import { Badge, Button, Card, Dialog, Embers, HeroCard, Icon, IconButton, Input, SideRail, TopNav } from "../components/ds";
 import { useAuth } from "../context/AuthContext";
 
 const FANTALOL = "https://fantalol.win";
@@ -35,14 +35,13 @@ const script = (size, valign) => ({ font: `400 ${size} var(--font-script)`, text
 const body = { margin: 0, font: "500 15px/1.6 var(--font-body)", color: "var(--text-secondary)", textWrap: "pretty" };
 const frame = { position: "relative", width: "100%", maxWidth: 1320, borderRadius: "var(--radius-lg)", background: "var(--surface-frame)", boxShadow: "var(--shadow-frame)", border: "1px solid var(--border-subtle)" };
 
-// Deterministic pseudo-random so embers don't jump between renders.
-const rnd = (k, q) => ((Math.sin(k * 99.13 + q) * 43758.5) % 1 + 1) % 1;
-const EMBERS = Array.from({ length: 46 }, (_, k) => {
-  const s = 2 + rnd(k, 3) * 4;
-  return (
-    <span key={k} style={{ position: "absolute", left: rnd(k, 1) * 100 + "%", top: rnd(k, 2) * 100 + "%", width: s, height: s, borderRadius: "50%", background: "var(--ember-300)", boxShadow: `0 0 ${s * 3}px var(--ember-500)`, animation: `emberDrift ${8 + rnd(k, 5) * 10}s linear ${-rnd(k, 6) * 18}s infinite` }} />
-  );
-});
+const WASH = {
+  cyan: "radial-gradient(55% 65% at 75% 40%, rgba(31,143,196,.55), transparent 70%)",
+  gold: "radial-gradient(55% 65% at 75% 40%, rgba(224,164,58,.38), transparent 70%)",
+  magenta: "radial-gradient(55% 65% at 75% 40%, rgba(194,59,212,.45), transparent 70%)",
+  violet: "radial-gradient(55% 65% at 75% 40%, rgba(122,58,168,.6), transparent 70%)",
+};
+const up = (ms, dur = 560) => ({ animation: `rhUp calc(var(--rh-k) * ${dur}ms) var(--ease-out) calc(var(--rh-k) * ${ms}ms) both` });
 
 function useWidth() {
   const [w, setW] = useState(window.innerWidth);
@@ -121,17 +120,22 @@ export default function Home() {
   ) : <Button variant="outline" size="sm" onClick={() => setSignIn(true)}>Accedi</Button>;
 
   return (
-    <div className="ds-motion" style={{ position: "relative", minHeight: "100vh", background: "var(--grad-page)", padding: "clamp(16px,4vw,48px) clamp(12px,4vw,56px)", display: "flex", flexDirection: "column", alignItems: "center", gap: 40, overflow: "hidden", fontFamily: "var(--font-body)", color: "var(--text-primary)" }}>
-      <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>{EMBERS}</div>
+    <div style={{ position: "relative", minHeight: "100vh", background: "var(--grad-page)", padding: "clamp(16px,4vw,48px) clamp(12px,4vw,56px)", display: "flex", flexDirection: "column", alignItems: "center", gap: 40, overflow: "hidden", fontFamily: "var(--font-body)", color: "var(--text-primary)" }}>
+      <Embers />
 
       {/* Hero */}
-      <section style={{ ...frame, height: narrow ? 720 : 800, overflow: "hidden" }}>
-        {/* ponytail: gradient stands in for the design's key-art image slot; drop an <img> here once art exists */}
-        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(55% 65% at 75% 40%, rgba(122,58,168,.55), transparent 70%), radial-gradient(40% 50% at 88% 75%, rgba(31,143,196,.35), transparent 70%)" }} />
+      <section style={{ ...frame, height: narrow ? 720 : 780, overflow: "hidden", animation: "rhScale calc(var(--rh-k) * 700ms) var(--ease-out) both" }}>
+        {/* ponytail: tinted washes stand in for the design's key-art image slot; drop an <img> here once art exists */}
+        <div style={{ position: "absolute", inset: "-4%", animation: "rhDrift 22s ease-in-out infinite alternate" }}>
+          {Object.entries(WASH).map(([t, bg]) => (
+            <div key={t} style={{ position: "absolute", inset: 0, background: bg, opacity: m.tint === t ? 1 : 0, transition: "opacity calc(var(--rh-k) * 900ms) var(--ease-out)" }} />
+          ))}
+          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(40% 50% at 88% 75%, rgba(31,143,196,.35), transparent 70%)" }} />
+        </div>
         <div style={{ position: "absolute", inset: 0, background: "var(--grad-scrim-left)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "45%", background: "var(--grad-scrim-bottom)", pointerEvents: "none" }} />
 
-        <div style={{ position: "absolute", left: 0, right: 0, top: 0, zIndex: 5 }}>
+        <div style={{ position: "absolute", left: 0, right: 0, top: 0, zIndex: 5, animation: "rhDown calc(var(--rh-k) * 600ms) var(--ease-out) calc(var(--rh-k) * 150ms) both" }}>
           <TopNav
             brand={<span onClick={scrollTop} style={{ cursor: "pointer" }}>RIFTHUB</span>}
             links={narrow ? [] : NAV.map((l) => ({ label: l, active: m.name === l }))}
@@ -140,19 +144,23 @@ export default function Home() {
           />
         </div>
         {!narrow && (
-          <div style={{ position: "absolute", left: 0, top: "calc(50% - 110px)", zIndex: 5 }}>
+          <div style={{ position: "absolute", left: 0, top: "calc(50% - 110px)", zIndex: 5, animation: "rhFade calc(var(--rh-k) * 600ms) var(--ease-out) calc(var(--rh-k) * 300ms) both" }}>
             <SideRail items={RAIL} onSelect={(r) => r.to && navigate(r.to)} />
           </div>
         )}
 
         <div style={{ position: "absolute", left: narrow ? 24 : "calc(var(--rail-width) + 48px)", top: narrow ? 120 : 180, width: narrow ? "calc(100% - 48px)" : "min(480px, calc(100% - var(--rail-width) - 96px))", zIndex: 4 }}>
-          <div key={m.key} style={{ display: "flex", flexDirection: "column", gap: 24, animation: "heroIn 450ms cubic-bezier(.2,.8,.2,1)" }}>
-            <div style={{ alignSelf: "flex-start" }}><Badge tone="cyan" dot>{"RiftHub · " + m.name}</Badge></div>
-            <h1 style={display(900, "clamp(56px,7vw,96px)", 0.92)}>
-              {m.a} <span style={script("clamp(42px,5.2vw,72px)", ".28em")}>{m.c}</span><br />{m.b}
+          <div key={m.key + tick} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+            <div style={{ alignSelf: "flex-start", ...up(0, 520) }}><Badge tone="cyan" dot>{"RiftHub · " + m.name}</Badge></div>
+            <h1 style={{ ...display(900, "clamp(56px,7vw,96px)", 0.92), ...up(70, 620) }}>
+              {m.a} <span style={{ ...script("clamp(42px,5.2vw,72px)", ".28em"), color: "var(--cyan-200)", textShadow: "var(--text-glow)" }}>{m.c}</span><br />{m.b}
             </h1>
-            <p style={{ ...body, maxWidth: 380 }}>{m.body}</p>
-            <div><Button size="lg" trailingIcon={m.ext ? "arrow-up-right" : "play"} onClick={() => cta(m)}>{m.cta}</Button></div>
+            <p style={{ ...body, maxWidth: 380, ...up(150) }}>{m.body}</p>
+            <div style={up(230)}><Button size="lg" trailingIcon={m.ext ? "arrow-up-right" : "play"} onClick={() => cta(m)}>{m.cta}</Button></div>
+            {/* autoplay progress; restarts with the hero key */}
+            <div style={{ width: 160, height: 2, borderRadius: 2, background: "rgba(255,255,255,.12)", overflow: "hidden" }}>
+              <div style={{ height: "100%", background: "var(--cyan-400)", boxShadow: "0 0 8px var(--cyan-400)", transformOrigin: "left", animation: signIn ? "none" : `rhGrow ${AUTOPLAY_MS}ms linear both` }} />
+            </div>
           </div>
         </div>
 
@@ -162,7 +170,9 @@ export default function Home() {
             <IconButton icon="chevron-right" size={36} label="Successivo" onClick={() => sel((i + 1) % MODS.length)} />
           </div>
           {!narrow && shown.map((j, k) => (
-            <HeroCard key={MODS[j].key} name={MODS[j].name} title={MODS[j].title} tint={MODS[j].tint} active={k === 0} width={200} height={260} onClick={() => sel(j)} />
+            <div key={MODS[j].key + k} style={up(k * 90, 520)}>
+              <HeroCard name={MODS[j].name} title={MODS[j].title} tint={MODS[j].tint} active={k === 0} width={200} height={260} onClick={() => sel(j)} />
+            </div>
           ))}
         </div>
       </section>
@@ -175,7 +185,8 @@ export default function Home() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 16 }}>
           {MODS.map((x, j) => (
-            <Card key={x.key} interactive glow={j === i} onClick={() => go(x)}>
+            <div key={x.key} style={up(80 + j * 60)}>
+            <Card interactive glow={j === i} onClick={() => go(x)} style={{ height: "100%", boxSizing: "border-box" }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <Icon name={x.icon} size={24} color="var(--cyan-400)" />
                 <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -185,6 +196,7 @@ export default function Home() {
                 <p style={{ ...body, fontSize: 14 }}>{x.short}</p>
               </div>
             </Card>
+            </div>
           ))}
         </div>
 

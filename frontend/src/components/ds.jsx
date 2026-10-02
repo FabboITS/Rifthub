@@ -1,14 +1,20 @@
 // Gaming Design System components, ported from the Claude Design bundle (GamingDesignSystem_a5ff6c).
 import {
-  ArrowUpRight, Calendar, Check, ChevronLeft, ChevronRight, Clapperboard, Gamepad2, GraduationCap, Layers, Lock, Mail, Map,
-  MessageSquareMore, Play, Search, Swords, Trophy, Users, X,
+  ArrowUpRight, BookOpen, Bot, Calendar, Check, ChevronLeft, ChevronRight, CircleX, Clapperboard, ClipboardList, Crosshair,
+  ExternalLink, Gamepad2, GraduationCap, Grid3x3, Hash, Heart, Info, Layers, LayoutDashboard, Lock, LogOut, Mail, Map,
+  MessageCircle, MessageSquareMore, Play, Plus, Search, Sparkles, Swords, Target, Trash2, TriangleAlert, Trophy, User, Users,
+  Video, Wand2, X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const ICONS = {
-  "arrow-up-right": ArrowUpRight, calendar: Calendar, check: Check, "chevron-left": ChevronLeft, "chevron-right": ChevronRight,
-  clapperboard: Clapperboard, "gamepad-2": Gamepad2, "graduation-cap": GraduationCap, layers: Layers, lock: Lock, mail: Mail,
-  map: Map, "message-square-more": MessageSquareMore, play: Play, search: Search, swords: Swords, trophy: Trophy, users: Users, x: X,
+  "arrow-up-right": ArrowUpRight, "book-open": BookOpen, bot: Bot, calendar: Calendar, check: Check, "chevron-left": ChevronLeft,
+  "chevron-right": ChevronRight, "circle-x": CircleX, clapperboard: Clapperboard, "clipboard-list": ClipboardList, crosshair: Crosshair,
+  "external-link": ExternalLink, "gamepad-2": Gamepad2, "graduation-cap": GraduationCap, "grid-3x3": Grid3x3, hash: Hash, heart: Heart,
+  info: Info, layers: Layers, "layout-dashboard": LayoutDashboard, lock: Lock, "log-out": LogOut, mail: Mail, map: Map,
+  "message-circle": MessageCircle, "message-square-more": MessageSquareMore, play: Play, plus: Plus, search: Search, sparkles: Sparkles,
+  swords: Swords, target: Target, "trash-2": Trash2, "triangle-alert": TriangleAlert, trophy: Trophy, user: User, users: Users,
+  video: Video, "wand-2": Wand2, x: X,
 };
 
 const label = { fontFamily: "var(--font-display)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "var(--ls-label)" };
@@ -28,6 +34,10 @@ const BADGE = {
   cyan: ["var(--cyan-500)", "rgba(61,191,235,.16)", "var(--cyan-200)"],
   magenta: ["var(--magenta-500)", "rgba(194,59,212,.18)", "var(--magenta-400)"],
   gold: ["var(--gold-500)", "rgba(224,164,58,.18)", "var(--gold-300)"],
+  success: ["var(--green-500)", "rgba(62,230,168,.15)", "var(--green-500)"],
+  danger: ["var(--red-500)", "rgba(255,77,109,.16)", "var(--red-500)"],
+  warning: ["var(--amber-500)", "rgba(242,184,75,.16)", "var(--amber-500)"],
+  neutral: ["var(--ink-500)", "rgba(255,255,255,.08)", "var(--ink-200)"],
 };
 
 export function Badge({ tone = "cyan", dot, children }) {
@@ -147,14 +157,14 @@ export function TopNav({ brand, links, onSelect, actions }) {
   );
 }
 
-export function Card({ padding = 24, interactive, glow, children, onClick }) {
+export function Card({ padding = 24, interactive, glow, children, onClick, style }) {
   const [h, hover] = useHover();
   const lit = glow || (interactive && h);
   return (
     <div {...hover} onClick={onClick}
       role={interactive ? "button" : undefined} tabIndex={interactive ? 0 : undefined}
       onKeyDown={interactive ? (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), onClick()) : undefined}
-      style={{ padding, borderRadius: "var(--radius-lg)", background: "var(--surface-glass)", backdropFilter: "var(--blur-glass)", border: "1px solid " + (lit ? "rgba(111,214,246,.55)" : "var(--border-subtle)"), boxShadow: lit ? "var(--shadow-card),0 0 24px rgba(61,191,235,.25)" : "var(--shadow-card)", transform: interactive && h ? "translateY(-4px)" : "none", cursor: interactive ? "pointer" : "default", transition: ease, color: "var(--text-primary)" }}>
+      style={{ padding, borderRadius: "var(--radius-lg)", background: "var(--surface-glass)", backdropFilter: "var(--blur-glass)", border: "1px solid " + (lit ? "rgba(111,214,246,.55)" : "var(--border-subtle)"), boxShadow: lit ? "var(--shadow-card),0 0 24px rgba(61,191,235,.25)" : "var(--shadow-card)", transform: interactive && h ? "translateY(-4px)" : "none", cursor: interactive ? "pointer" : "default", transition: ease, color: "var(--text-primary)", ...style }}>
       {children}
     </div>
   );
@@ -200,4 +210,46 @@ export function HeroCard({ name, title, tint = "violet", active, width = 270, he
       </span>
     </button>
   );
+}
+
+export function Tag({ selected, icon, onClick, children, style }) {
+  const [h, hover] = useHover();
+  return (
+    <button {...hover} type="button" onClick={onClick} aria-pressed={!!selected}
+      style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 34, padding: "0 16px", borderRadius: "var(--radius-pill)", font: "700 13px var(--font-body)", cursor: "pointer", color: selected ? "var(--cyan-200)" : h ? "var(--ink-0)" : "var(--text-secondary)", background: selected ? "rgba(61,191,235,.14)" : h ? "var(--surface-hover)" : "var(--surface-raised)", border: "1px solid " + (selected ? "var(--cyan-500)" : "var(--border-subtle)"), boxShadow: selected ? "0 0 16px rgba(61,191,235,.3)" : "none", transition: ease, ...style }}>
+      {icon && <Icon name={icon} size={15} />}{children}
+    </button>
+  );
+}
+
+const TOAST = { info: ["var(--cyan-500)", "info"], success: ["var(--green-500)", "check"], warning: ["var(--amber-500)", "triangle-alert"], danger: ["var(--red-500)", "circle-x"], reward: ["var(--gold-500)", "trophy"] };
+
+export function Toast({ tone = "info", title, message, onClose, style }) {
+  const [c, ic] = TOAST[tone] || TOAST.info;
+  return (
+    <div role="status" style={{ display: "flex", alignItems: "flex-start", gap: 14, width: 360, maxWidth: "100%", padding: "14px 16px", borderRadius: "var(--radius-md)", background: "var(--surface-glass-strong)", backdropFilter: "var(--blur-glass)", border: "1px solid var(--border-subtle)", boxShadow: "var(--shadow-card)", color: "var(--text-primary)", ...style }}>
+      <span style={{ width: 32, height: 32, flex: "none", borderRadius: "50%", display: "grid", placeItems: "center", background: `color-mix(in srgb, ${c} 20%, transparent)`, color: c, boxShadow: `0 0 14px color-mix(in srgb, ${c} 40%, transparent)` }}>
+        <Icon name={ic} size={16} />
+      </span>
+      <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, paddingTop: 2, minWidth: 0 }}>
+        <span style={{ font: "800 14px var(--font-display)" }}>{title}</span>
+        {message && <span style={{ font: "500 13px/1.5 var(--font-body)", color: "var(--text-secondary)" }}>{message}</span>}
+      </span>
+      {onClose && <button type="button" aria-label="Chiudi notifica" onClick={onClose} style={{ background: "none", border: "none", padding: 4, cursor: "pointer", color: "var(--ink-300)" }}><Icon name="x" size={16} /></button>}
+    </div>
+  );
+}
+
+// Deterministic pseudo-random so embers don't jump between renders.
+const rnd = (k, q) => ((Math.sin(k * 99.13 + q) * 43758.5) % 1 + 1) % 1;
+const EMBERS = Array.from({ length: 40 }, (_, k) => {
+  const s = 2 + rnd(k, 3) * 4;
+  return (
+    <span key={k} style={{ position: "absolute", left: rnd(k, 1) * 100 + "%", top: rnd(k, 2) * 100 + "%", width: s, height: s, borderRadius: "50%", background: "var(--ember-300)", boxShadow: `0 0 ${s * 3}px var(--ember-500)`, opacity: 0.8, animation: `rhEmber ${8 + rnd(k, 5) * 10}s linear ${-rnd(k, 6) * 18}s infinite` }} />
+  );
+});
+
+/** Floating ember particles behind every screen. */
+export function Embers() {
+  return <div aria-hidden="true" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>{EMBERS}</div>;
 }

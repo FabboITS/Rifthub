@@ -10,12 +10,13 @@
 
 @layer components {
   .card { @apply rounded-[20px] border border-white/10 p-5; background: var(--surface-glass); backdrop-filter: var(--blur-glass); box-shadow: var(--shadow-card); }
-  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-[11px] font-extrabold uppercase tracking-[.14em] transition duration-200 active:scale-[.97] disabled:cursor-not-allowed disabled:opacity-40; }
+  .btn { @apply inline-flex h-9 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full px-[18px] text-[11px] font-extrabold uppercase tracking-[.14em] transition duration-200 active:scale-[.97] disabled:cursor-not-allowed disabled:opacity-40; }
   .btn-primary { @apply btn border border-white/35 text-white hover:brightness-110; background: var(--grad-cta); box-shadow: var(--glow-cta); text-shadow: 0 1px 6px rgba(20,40,110,.45); }
   .btn-gold { @apply btn border border-white/45 text-white hover:border-white hover:bg-white/10; }
+  .btn-outline { @apply btn-gold; }
   .btn-ghost { @apply btn text-slate-200 hover:bg-white/10 hover:text-white; }
   .btn-danger { @apply btn border border-rose-400/50 bg-rose-500/15 text-rose-200 hover:bg-rose-500/30; }
-  .input { @apply w-full rounded-[14px] border border-white/10 px-4 py-2.5 text-sm text-white placeholder-slate-500 transition focus:border-hex focus:outline-none focus:ring-[3px] focus:ring-hex-dark/20; background: var(--surface-input); }
+  .input { @apply w-full rounded-[14px] border border-white/10 px-[18px] py-3 text-[15px] text-white placeholder-slate-500 transition focus:border-hex focus:outline-none focus:ring-[3px] focus:ring-hex-dark/20; background: var(--surface-input); }
   .label { @apply mb-1.5 block text-[10px] font-extrabold uppercase tracking-[.14em] text-slate-400; }
   .badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-[.12em]; }
 }

@@ -1,32 +1,32 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Trophy } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { Link, useParams } from "react-router-dom";
 import api, { errMsg } from "../api/client";
 import Bracket from "../components/Bracket";
-import { Badge, Card, Empty, Modal, PageHeader, QueryState } from "../components/ui";
+import { Button, Icon } from "../components/ds";
+import { Badge, Card, Empty, Modal, PageHeader, QueryState, ResultPicker } from "../components/ui";
+import { STATUS } from "./Tournaments";
 import { label } from "../lib/format";
 import { useList } from "../lib/hooks";
 
-function ResultModal({ match, onClose, onSaved }) {
-  const [score, setScore] = useState({ score_a: 2, score_b: 0 });
+// Tournament matches carry no series format: offer BO1 and BO3 scores.
+const SCORES = [[1, 0], [2, 0], [2, 1], [1, 2], [0, 2], [0, 1]];
+
+function ResultModal({ match, tour, onClose, onSaved }) {
   const save = useMutation({
-    mutationFn: () => api.post(`/tournament-matches/${match.id}/report-result/`, score),
-    onSuccess: () => { toast.success("Risultato registrato"); onSaved(); onClose(); },
+    mutationFn: (score) => api.post(`/tournament-matches/${match.id}/report-result/`, score),
+    onSuccess: (_, sc) => {
+      const winner = sc.score_a > sc.score_b ? match.team_a.name : match.team_b.name;
+      toast.success(match.next_match ? `Risultato salvato · ${winner} passa il turno` : `${winner} campione!`, match.next_match ? {} : { icon: "🏆" });
+      onSaved();
+      onClose();
+    },
     onError: (e) => toast.error(errMsg(e)),
   });
   return (
-    <Modal open onClose={onClose} title="Inserisci risultato">
-      <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
-        {[["score_a", match.team_a], ["score_b", match.team_b]].map(([k, t]) => (
-          <label key={k} className="flex items-center justify-between gap-3">
-            <span>{t.name}</span>
-            <input type="number" min={0} className="input w-20" value={score[k]} onChange={(e) => setScore({ ...score, [k]: +e.target.value })} />
-          </label>
-        ))}
-        <button className="btn-primary w-full" disabled={save.isPending}>Salva e fai avanzare il vincitore</button>
-      </form>
+    <Modal open onClose={onClose} eyebrow={tour.name} title={`${match.team_a.tag} vs ${match.team_b.tag}`}>
+      <ResultPicker a={match.team_a.name} b={match.team_b.name} options={SCORES} onPick={save.mutate} disabled={save.isPending} />
     </Modal>
   );
 }
@@ -36,13 +36,13 @@ function Standings({ query }) {
     <QueryState query={query}>
       {(rows) => (
         <table className="w-full text-sm">
-          <thead className="text-left text-xs uppercase text-slate-400">
+          <thead className="text-left text-[11px] font-extrabold uppercase tracking-[.14em] text-slate-400">
             <tr><th className="py-1">#</th><th>Team</th><th>G</th><th>V</th><th>P</th><th>Diff</th><th>Punti</th></tr>
           </thead>
           <tbody>
             {rows.map((r, i) => (
-              <tr key={r.team.id} className="border-t border-slate-700/60">
-                <td className="py-1.5 text-gold">{i + 1}</td><td>{r.team.name}</td><td>{r.played}</td>
+              <tr key={r.team.id} className="border-t border-white/5">
+                <td className="rh-mono py-1.5 text-gold">{i + 1}</td><td>{r.team.name}</td><td>{r.played}</td>
                 <td>{r.wins}</td><td>{r.losses}</td><td>{r.diff > 0 ? `+${r.diff}` : r.diff}</td><td className="font-bold">{r.points}</td>
               </tr>
             ))}
@@ -70,12 +70,12 @@ function Registration({ tour, onChanged }) {
           {list.map((t) => {
             const canRegister = tour.can_edit || t.can_edit;
             return (
-              <li key={t.id} className="flex items-center justify-between gap-2 rounded bg-slate-900/50 px-2 py-1.5">
+              <li key={t.id} className="rh-row !py-2 !text-sm">
                 <span className="truncate">{t.name} <span className="text-xs text-slate-500">{t.tag} · {t.region}</span></span>
                 {registered.has(t.id) ? <Badge color="green">Iscritto</Badge>
                   : canRegister ? (
-                    <button className="btn-gold px-2 py-1 text-xs" disabled={full || register.isPending}
-                      onClick={() => register.mutate(t.id)}>Iscrivi</button>
+                    <Button size="sm" variant="outline" disabled={full || register.isPending}
+                      onClick={() => register.mutate(t.id)}>Iscrivi</Button>
                   ) : <Badge>Non iscritto</Badge>}
               </li>
             );
@@ -100,13 +100,13 @@ function RoundRobin({ matches, onMatchClick }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {rounds.map((r) => (
-        <div key={r} className="rounded-lg bg-slate-900/50 p-3">
-          <p className="mb-2 text-xs font-semibold uppercase text-gold">Giornata {r}</p>
+        <div key={r} className="rounded-xl p-3" style={{ background: "rgba(11,9,32,.45)" }}>
+          <p className="mb-2 text-[11px] font-extrabold uppercase tracking-[.14em] text-gold">Giornata {r}</p>
           {matches.filter((m) => m.round === r).map((m) => (
             <button key={m.id} type="button" disabled={!!m.winner || !onMatchClick} onClick={() => onMatchClick?.(m)}
-              className="mb-1 flex w-full justify-between rounded px-2 py-1 text-left text-sm hover:bg-slate-800 disabled:hover:bg-transparent">
+              className="mb-1 flex w-full justify-between rounded-lg px-2 py-1 text-left text-sm transition enabled:cursor-pointer enabled:hover:bg-white/5">
               <span>{m.team_a?.tag} – {m.team_b?.tag}</span>
-              <span className={m.winner ? "text-gold-light" : "text-slate-500"}>{m.winner ? `${m.score_a}-${m.score_b}` : "da giocare"}</span>
+              <span className={`rh-mono ${m.winner ? "text-[var(--gold-300)]" : "text-slate-500"}`}>{m.winner ? `${m.score_a}-${m.score_b}` : "da giocare"}</span>
             </button>
           ))}
         </div>
@@ -134,50 +134,61 @@ export default function TournamentDetail() {
     <QueryState query={t}>
       {(tour) => {
         const winner = winnerOf(tour, bracket.data || [], standings.data);
+        const [tone, txt] = STATUS[tour.status] || ["slate", label(tour.status)];
+        const pct = Math.min(100, (tour.entries.length / tour.max_teams) * 100);
         return (
-        <div className="space-y-4">
-          <Link to="/tournaments" className="btn-ghost -ml-3"><ArrowLeft className="h-4 w-4" /> Tutti i tornei</Link>
-          <PageHeader title={tour.name} subtitle={tour.description}>
-            <Badge color="gold">{label(tour.status)}</Badge>
+        <div className="flex flex-col gap-5">
+          <Link to="/tournaments" className="flex items-center gap-1.5 self-start text-[11px] font-extrabold uppercase tracking-[.14em] !text-slate-400 transition hover:-translate-x-1 hover:!text-white">
+            <Icon name="chevron-left" size={14} />Tornei
+          </Link>
+          <PageHeader eyebrow={txt} tone={{ green: "success", slate: "neutral" }[tone] || tone} title={tour.name} subtitle={tour.description}>
             <Badge color="hex">{tour.format === "SINGLE_ELIM" ? "Eliminazione diretta" : "Round robin"}</Badge>
+            {winner && <div style={{ animation: "rhPop calc(var(--rh-k) * 420ms) var(--ease-out) both" }}><Badge color="gold" dot>Campione · {winner}</Badge></div>}
             {tour.can_edit && tour.status !== "FINISHED" && (
-              <button className="btn-primary" onClick={() => {
+              <Button size="sm" onClick={() => {
                 if (!bracket.data?.length || window.confirm("Rigenerare il bracket? I risultati verranno persi.")) generate.mutate();
-              }} disabled={generate.isPending}>{bracket.data?.length ? "Rigenera bracket" : "Genera bracket"}</button>
+              }} disabled={generate.isPending}>{bracket.data?.length ? "Rigenera bracket" : "Genera bracket"}</Button>
             )}
           </PageHeader>
           {tour.status === "FINISHED" && (
-            <div className="card flex flex-wrap items-center justify-between gap-3 border-gold/60 bg-gold/10">
-              <p className="flex items-center gap-2 text-lg font-semibold text-gold-light">
-                <Trophy className="h-6 w-6 text-gold" /> Torneo concluso{winner ? ` — vince ${winner}!` : ""}
+            <div className="card flex flex-wrap items-center justify-between gap-3 !border-gold/60" style={{ background: "linear-gradient(135deg,rgba(224,164,58,.14),var(--surface-glass))", animation: "rhScale calc(var(--rh-k) * 420ms) var(--ease-out) both" }}>
+              <p className="m-0 flex items-center gap-2 text-lg font-extrabold uppercase tracking-[.04em] text-[var(--gold-300)]">
+                <Icon name="trophy" size={24} color="var(--gold-500)" /> Torneo concluso{winner ? ` — vince ${winner}!` : ""}
               </p>
-              <Link to="/tournaments" className="btn-gold"><ArrowLeft className="h-4 w-4" /> Torna a tutti i tornei</Link>
+            </div>
+          )}
+          {tour.status === "REGISTRATION" && (
+            <div className="flex max-w-[520px] flex-col gap-2">
+              <span className="text-xs font-semibold text-slate-400">{tour.entries.length}/{tour.max_teams} team iscritti</span>
+              <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${pct}%`, background: "var(--grad-cta)", boxShadow: "0 0 12px rgba(61,191,235,.6)" }} />
+              </div>
             </div>
           )}
           <div className="grid gap-4 lg:grid-cols-3">
             <Card title={`Iscritti (${tour.entries.length}/${tour.max_teams})`}>
-              <ol className="space-y-1 text-sm">
-                {tour.entries.map((e) => <li key={e.id}><span className="mr-2 text-gold">#{e.seed}</span>{e.team.name}</li>)}
+              <ol className="m-0 flex list-none flex-col gap-1.5 p-0 text-sm">
+                {tour.entries.map((e) => <li key={e.id} className="rh-row !py-2"><span><span className="rh-mono mr-2 text-gold">#{e.seed}</span>{e.team.name}</span></li>)}
               </ol>
               {tour.status === "REGISTRATION" && (
-                <div className="mt-4">
+                <div>
                   <p className="label">Team presenti su RiftHub</p>
                   <Registration tour={tour} onChanged={refresh} />
                 </div>
               )}
             </Card>
-            <Card title={tour.format === "SINGLE_ELIM" ? "Bracket" : "Calendario"} className="lg:col-span-2">
+            <Card title={tour.format === "SINGLE_ELIM" ? "Bracket" : "Calendario"} className="lg:col-span-2" delay={140}>
               <QueryState query={bracket}>
                 {(matches) => !matches.length ? <Empty>Bracket non ancora generato.</Empty>
                   : tour.format === "SINGLE_ELIM"
                     ? <Bracket matches={matches} onMatchClick={tour.can_edit ? setEditing : null} />
                     : <RoundRobin matches={matches} onMatchClick={tour.can_edit ? setEditing : null} />}
               </QueryState>
-              {tour.can_edit && bracket.data?.length > 0 && tour.status !== "FINISHED" && <p className="mt-2 text-xs text-slate-500">Clicca un match da giocare per inserire il risultato.</p>}
+              {tour.can_edit && bracket.data?.length > 0 && tour.status !== "FINISHED" && <p className="m-0 text-[13px] text-slate-400">I match con bordo pulsante sono pronti: tocca per inserire il risultato.</p>}
             </Card>
           </div>
           {bracket.data?.length > 0 && <Card title="Classifica"><Standings query={standings} /></Card>}
-          {editing && <ResultModal match={editing} onClose={() => setEditing(null)} onSaved={refresh} />}
+          {editing && <ResultModal match={editing} tour={tour} onClose={() => setEditing(null)} onSaved={refresh} />}
         </div>
         );
       }}

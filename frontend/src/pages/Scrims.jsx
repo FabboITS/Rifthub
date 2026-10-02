@@ -1,37 +1,44 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addDays, addWeeks, format, isSameDay, startOfWeek } from "date-fns";
 import { it } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Search, Wand2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import api, { errMsg } from "../api/client";
-import { Badge, Loading, Card, Empty, Field, Modal, PageHeader, QueryState, ScoreBar, Select } from "../components/ui";
-import { RANK_OPTIONS, TIERS, fmtDate, label, toLocalInput } from "../lib/format";
+import { Button, IconButton, Tag } from "../components/ds";
+import { Badge, Card, ChipGroup, Empty, Field, Loading, Modal, PageHeader, QueryState, ResultPicker, ScoreBar, Select, up } from "../components/ui";
+import { RANK_OPTIONS, TIERS, fmtDate, label, resultOptions } from "../lib/format";
 import { useList, useManagedTeams } from "../lib/hooks";
+
+const FORMATS = ["BO1", "BO2", "BO3", "BO5"];
+const TIMES = ["19:00", "20:00", "21:00", "22:00"];
+const REQ = { OPEN: ["green", "Aperta"], MATCHED: ["hex", "Abbinata"], CANCELLED: ["slate", "Annullata"] };
+const BARS = [["availability", "Disponibilità", 40], ["rank", "Rank", 30], ["region_tier", "Regione/tier", 15], ["variety", "Varietà", 15]];
+const dayLabel = (d) => format(d, "EEE d MMM", { locale: it });
 
 function Candidates({ data }) {
   if (!data.length) return <Empty>Nessun avversario compatibile (servono altre richieste aperte).</Empty>;
   return (
-    <ul className="space-y-3">
-      {data.map((c) => (
-        <li key={c.team_id} className="rounded-lg bg-slate-900/60 p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="font-semibold">{c.team_name}</span>
-            <span className="font-display text-xl text-hex">{c.score}<span className="text-xs text-slate-500">/100</span></span>
+    <div className="flex flex-col gap-3">
+      {data.map((c, i) => (
+        <div key={c.team_id} className="flex flex-col gap-3 rounded-[14px] border border-white/10 p-4 transition hover:border-hex/50"
+          style={{ background: "rgba(11,9,32,.5)", ...up(120 + i * 110, 480) }}>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-[15px] font-extrabold uppercase tracking-[.04em]">{c.team_name}</span>
+            <span className="rh-mono text-[26px] font-bold text-hex" style={{ textShadow: "var(--text-glow)" }}>{c.score}<span className="text-xs text-slate-500">/100</span></span>
           </div>
-          <ScoreBar value={c.score} />
-          <div className="mt-2 grid grid-cols-4 gap-1 text-center text-[11px] text-slate-400">
-            <span>Disponibilità {c.breakdown.availability}/40</span>
-            <span>Rank {c.breakdown.rank}/30</span>
-            <span>Regione/tier {c.breakdown.region_tier}/15</span>
-            <span>Varietà {c.breakdown.variety}/15</span>
+          <ScoreBar value={c.score} delay={120 + i * 110} />
+          <div className="grid gap-2.5" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(110px,1fr))" }}>
+            {BARS.map(([k, l, max], j) => (
+              <div key={k} className="flex flex-col gap-1">
+                <div className="flex justify-between text-[11px] font-semibold text-slate-400"><span>{l}</span><span className="rh-mono">{c.breakdown[k]}/{max}</span></div>
+                <ScoreBar value={c.breakdown[k]} max={max} thin delay={260 + i * 110 + j * 60} />
+              </div>
+            ))}
           </div>
-          <ul className="mt-2 list-inside list-disc text-xs text-slate-300">
-            {c.reasons.map((r) => <li key={r}>{r}</li>)}
-          </ul>
-        </li>
+          <ul className="m-0 pl-[18px] text-[13px] leading-relaxed text-slate-300">{c.reasons.map((r) => <li key={r}>{r}</li>)}</ul>
+        </div>
       ))}
-    </ul>
+    </div>
   );
 }
 
@@ -39,45 +46,30 @@ function WeekCalendar({ scrims }) {
   const [week, setWeek] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const days = Array.from({ length: 7 }, (_, i) => addDays(week, i));
   return (
-    <Card title={`Settimana del ${format(week, "d MMMM", { locale: it })}`} action={
-      <div className="flex gap-1">
-        <button className="btn-ghost p-1" aria-label="Settimana precedente" onClick={() => setWeek(addWeeks(week, -1))}><ChevronLeft className="h-4 w-4" /></button>
-        <button className="btn-ghost p-1" aria-label="Settimana successiva" onClick={() => setWeek(addWeeks(week, 1))}><ChevronRight className="h-4 w-4" /></button>
+    <Card delay={260} title={`Settimana del ${format(week, "d MMMM", { locale: it })}`} action={
+      <div className="flex gap-1.5">
+        <IconButton icon="chevron-left" size={32} label="Settimana precedente" onClick={() => setWeek(addWeeks(week, -1))} />
+        <IconButton icon="chevron-right" size={32} label="Settimana successiva" onClick={() => setWeek(addWeeks(week, 1))} />
       </div>
     }>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-7">
-        {days.map((d) => {
-          const today = scrims.filter((s) => isSameDay(new Date(s.scheduled_at), d));
+      <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(120px,1fr))" }}>
+        {days.map((d, n) => {
+          const today = isSameDay(d, new Date());
           return (
-            <div key={d.toISOString()} className={`min-h-24 rounded-lg border p-2 ${isSameDay(d, new Date()) ? "border-hex/60" : "border-slate-700/60"}`}>
-              <p className="mb-1 text-xs font-semibold uppercase text-slate-400">{format(d, "EEE d", { locale: it })}</p>
-              {today.map((s) => (
-                <div key={s.id} className={`mb-1 rounded px-1.5 py-1 text-[11px] ${s.status === "PLAYED" ? "bg-slate-700/60" : "bg-hex/15 text-hex"}`}>
+            <div key={d.toISOString()} className="flex min-h-24 flex-col gap-1.5 rounded-xl border p-2.5 transition-colors duration-300"
+              style={{ borderColor: today ? "rgba(111,214,246,.6)" : "var(--border-subtle)", boxShadow: today ? "0 0 18px rgba(61,191,235,.2)" : "none" }}>
+              <span className="text-[11px] font-extrabold uppercase tracking-[.1em] text-slate-400">{dayLabel(d)}</span>
+              {scrims.filter((s) => isSameDay(new Date(s.scheduled_at), d)).map((s, j) => (
+                <span key={s.id} className="rounded-lg px-2 py-1 text-[11px] font-semibold"
+                  style={{ background: s.status === "PLAYED" ? "rgba(255,255,255,.07)" : "rgba(61,191,235,.16)", color: s.status === "PLAYED" ? "var(--ink-300)" : "var(--cyan-200)", animation: `rhPop calc(var(--rh-k) * 360ms) var(--ease-out) calc(var(--rh-k) * ${120 + n * 40 + j * 40}ms) both` }}>
                   {format(new Date(s.scheduled_at), "HH:mm")} {s.team_a.tag} v {s.team_b.tag}
-                </div>
+                </span>
               ))}
             </div>
           );
         })}
       </div>
     </Card>
-  );
-}
-
-function ResultForm({ scrim, onSaved }) {
-  const [score, setScore] = useState({ score_a: 0, score_b: 0 });
-  const save = useMutation({
-    mutationFn: () => api.post(`/scrims/${scrim.id}/report-result/`, score),
-    onSuccess: () => { toast.success("Risultato salvato"); onSaved(); },
-    onError: (e) => toast.error(errMsg(e)),
-  });
-  return (
-    <form className="flex items-center gap-1" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
-      <input type="number" min={0} className="input w-14 px-2 py-1" value={score.score_a} onChange={(e) => setScore({ ...score, score_a: +e.target.value })} aria-label="Punteggio A" />
-      <span>-</span>
-      <input type="number" min={0} className="input w-14 px-2 py-1" value={score.score_b} onChange={(e) => setScore({ ...score, score_b: +e.target.value })} aria-label="Punteggio B" />
-      <button className="btn-ghost px-2 py-1 text-xs">Salva</button>
-    </form>
   );
 }
 
@@ -89,108 +81,136 @@ export default function Scrims() {
   const requests = useList("scrim-requests", "/scrim-requests/", { team, page_size: 50 }, { enabled: !!team });
   const scrims = useList("scrims", "/scrims/", { team, page_size: 100, ordering: "scheduled_at" }, { enabled: !!team });
   const [candidates, setCandidates] = useState(null);
-  const [form, setForm] = useState({
-    format: "BO3", desired_tier: "", min_rank_score: 1600, max_rank_score: 3000,
-    preferred_start: toLocalInput(addDays(new Date(), 2).setHours(20, 0, 0, 0)),
-  });
+  const [scoring, setScoring] = useState(null);
+  const nextDays = Array.from({ length: 6 }, (_, i) => addDays(new Date(), i + 1));
+  const [form, setForm] = useState({ format: "BO3", desired_tier: "", min_rank_score: 1600, max_rank_score: 3000, day: format(nextDays[1], "yyyy-MM-dd"), time: "20:00" });
+  const setF = (k, v) => setForm({ ...form, [k]: v });
   const refresh = () => ["scrim-requests", "scrims", "dash"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  const fail = (e) => toast.error(errMsg(e));
 
   const create = useMutation({
-    mutationFn: () => api.post("/scrim-requests/", { ...form, team, preferred_start: new Date(form.preferred_start).toISOString() }),
-    onSuccess: () => { toast.success("Richiesta creata"); refresh(); },
-    onError: (e) => toast.error(errMsg(e)),
+    mutationFn: () => {
+      const { day, time, ...rest } = form;
+      return api.post("/scrim-requests/", { ...rest, team, preferred_start: new Date(`${day}T${time}`).toISOString() });
+    },
+    onSuccess: () => { toast.success(`Richiesta creata · ${form.format} · ${dayLabel(new Date(`${form.day}T12:00`))} · ${form.time}`); refresh(); },
+    onError: fail,
   });
   const find = useMutation({
-    mutationFn: (id) => api.post(`/scrim-requests/${id}/find-matches/`).then((r) => r.data.candidates),
+    mutationFn: (r) => api.post(`/scrim-requests/${r.id}/find-matches/`).then((res) => ({ req: r, list: res.data.candidates })),
     onSuccess: setCandidates,
-    onError: (e) => toast.error(errMsg(e)),
+    onError: fail,
   });
   const auto = useMutation({
     mutationFn: (id) => api.post(`/scrim-requests/${id}/auto-match/`).then((r) => r.data),
     onSuccess: (s) => { toast.success(`Scrim creata vs ${s.team_b.name} (${s.match.score}/100)`); refresh(); },
-    onError: (e) => toast.error(errMsg(e)),
+    onError: fail,
   });
   const cancel = useMutation({
     mutationFn: (id) => api.patch(`/scrim-requests/${id}/`, { status: "CANCELLED" }),
-    onSuccess: refresh,
+    onSuccess: () => { toast("Richiesta annullata"); refresh(); },
+    onError: fail,
+  });
+  const report = useMutation({
+    mutationFn: (score) => api.post(`/scrims/${scoring.id}/report-result/`, score),
+    onSuccess: () => { toast.success("Risultato salvato"); setScoring(null); refresh(); },
+    onError: fail,
   });
 
   if (teams.isPending) return <Loading />;
   if (!teams.data.length) return <Empty>Serve un team che gestisci per organizzare scrim.</Empty>;
+  const teamName = teams.data.find((t) => t.id === team)?.name;
 
   return (
-    <div className="space-y-4">
-      <PageHeader title="Scrim" subtitle="Matchmaking automatico per compatibilità di orari, rank, regione e varietà">
-        <div className="w-56"><Select value={team} onChange={setTeam} options={teams.data.map((t) => [t.id, t.name])} /></div>
+    <div className="flex flex-col gap-5">
+      <PageHeader eyebrow={teamName || "Scrim"} title="Scrim" subtitle="Matchmaking automatico per compatibilità di orari, rank, regione e varietà">
+        {teams.data.length > 1 && teams.data.map((t) => <Tag key={t.id} selected={t.id === team} onClick={() => setTeam(t.id)}>{t.tag}</Tag>)}
       </PageHeader>
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card title="Nuova richiesta">
-          <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); create.mutate(); }}>
+      <div className="grid items-start gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(min(340px,100%),1fr))" }}>
+        <Card title="Nuova richiesta" delay={140}>
+          <form className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); create.mutate(); }}>
+            <ChipGroup label="Formato">{FORMATS.map((f) => <Tag key={f} selected={form.format === f} onClick={() => setF("format", f)}>{f}</Tag>)}</ChipGroup>
+            <ChipGroup label="Giorno">
+              {nextDays.map((d) => { const iso = format(d, "yyyy-MM-dd"); return <Tag key={iso} selected={form.day === iso} onClick={() => setF("day", iso)}>{dayLabel(d)}</Tag>; })}
+            </ChipGroup>
+            <ChipGroup label="Orario">{TIMES.map((t) => <Tag key={t} selected={form.time === t} onClick={() => setF("time", t)}>{t}</Tag>)}</ChipGroup>
+            <ChipGroup label="Tier avversario">
+              {[["", "Stesso tier"], ...TIERS.map((t) => [t, label(t)])].map(([v, l]) => <Tag key={l} selected={form.desired_tier === v} onClick={() => setF("desired_tier", v)}>{l}</Tag>)}
+            </ChipGroup>
             <div className="grid grid-cols-2 gap-2">
-              <Field label="Formato"><Select value={form.format} onChange={(v) => setForm({ ...form, format: v })} options={["BO1", "BO2", "BO3", "BO5"]} /></Field>
-              <Field label="Tier desiderato"><Select value={form.desired_tier} onChange={(v) => setForm({ ...form, desired_tier: v })} options={TIERS.map((t) => [t, label(t)])} placeholder="Stesso tier" /></Field>
+              <Field label="Rank min"><Select value={form.min_rank_score} onChange={(v) => setF("min_rank_score", +v)} options={RANK_OPTIONS} /></Field>
+              <Field label="Rank max"><Select value={form.max_rank_score} onChange={(v) => setF("max_rank_score", +v)} options={RANK_OPTIONS} /></Field>
             </div>
-            <Field label="Inizio preferito"><input type="datetime-local" className="input" value={form.preferred_start} onChange={(e) => setForm({ ...form, preferred_start: e.target.value })} required /></Field>
-            <div className="grid grid-cols-2 gap-2">
-              <Field label="Rank min"><Select value={form.min_rank_score} onChange={(v) => setForm({ ...form, min_rank_score: +v })} options={RANK_OPTIONS} /></Field>
-              <Field label="Rank max"><Select value={form.max_rank_score} onChange={(v) => setForm({ ...form, max_rank_score: +v })} options={RANK_OPTIONS} /></Field>
-            </div>
-            <button className="btn-primary w-full" disabled={create.isPending}>Pubblica richiesta</button>
+            <Button type="submit" fullWidth disabled={create.isPending || !team}>Pubblica richiesta</Button>
           </form>
         </Card>
-        <Card title="Le tue richieste" className="lg:col-span-2">
-          <QueryState query={requests}>
+        <Card title="Le tue richieste" delay={200}>
+          <QueryState query={requests} cards={1}>
             {(list) => list.length ? (
-              <ul className="space-y-2">
-                {list.map((r) => (
-                  <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-900/60 p-3 text-sm">
-                    <span>
-                      <b>{r.format}</b> · {fmtDate(r.preferred_start)} {r.desired_tier && `· ${label(r.desired_tier)}`}
-                      <span className="ml-2"><Badge color={r.status === "OPEN" ? "green" : r.status === "MATCHED" ? "hex" : "slate"}>{label(r.status)}</Badge></span>
-                    </span>
-                    {r.status === "OPEN" && (
-                      <span className="flex gap-2">
-                        <button className="btn-gold" onClick={() => find.mutate(r.id)} disabled={find.isPending}><Search className="h-4 w-4" /> Trova avversario</button>
-                        <button className="btn-primary" onClick={() => auto.mutate(r.id)} disabled={auto.isPending}><Wand2 className="h-4 w-4" /> Auto-match</button>
-                        <button className="btn-ghost" onClick={() => cancel.mutate(r.id)}>Annulla</button>
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              <div className="flex flex-col gap-2">
+                {list.map((r, i) => {
+                  const [tone, txt] = REQ[r.status] || ["slate", label(r.status)];
+                  return (
+                    <div key={r.id} className="flex flex-col gap-2.5 rounded-[14px] px-3.5 py-3" style={{ background: "rgba(11,9,32,.45)", ...up(160 + i * 60, 460) }}>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-sm font-semibold"><b>{r.format}</b> · {fmtDate(r.preferred_start)} · {r.desired_tier ? label(r.desired_tier) : "Stesso tier"}</span>
+                        <Badge color={tone} dot>{txt}</Badge>
+                      </div>
+                      {r.status === "OPEN" && (
+                        <div className="flex flex-wrap gap-2">
+                          <Button size="sm" variant="outline" trailingIcon="search" onClick={() => find.mutate(r)} disabled={find.isPending}>Trova avversario</Button>
+                          <Button size="sm" onClick={() => auto.mutate(r.id)} disabled={auto.isPending}>Auto-match</Button>
+                          <Button size="sm" variant="ghost" onClick={() => cancel.mutate(r.id)}>Annulla</Button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             ) : <Empty>Nessuna richiesta: pubblicane una.</Empty>}
           </QueryState>
         </Card>
       </div>
-      <QueryState query={scrims}>
+      <QueryState query={scrims} cards={2}>
         {(list) => (
           <>
             <WeekCalendar scrims={list} />
-            <Card title="Scrim del team">
+            <Card title="Scrim del team" delay={320}>
               {list.length ? (
-                <table className="w-full text-sm">
-                  <thead className="text-left text-xs uppercase text-slate-400">
-                    <tr><th className="py-1">Data</th><th>Match</th><th>Formato</th><th>Stato</th><th>Risultato</th></tr>
-                  </thead>
-                  <tbody>
-                    {list.map((s) => (
-                      <tr key={s.id} className="border-t border-slate-700/60">
-                        <td className="py-2">{fmtDate(s.scheduled_at)}</td>
-                        <td>{s.team_a.name} vs {s.team_b.name}</td>
-                        <td>{s.format}</td>
-                        <td><Badge color={s.status === "SCHEDULED" ? "hex" : "slate"}>{label(s.status)}</Badge></td>
-                        <td>{s.status === "PLAYED" ? `${s.score_a} - ${s.score_b}` : s.status === "SCHEDULED" ? <ResultForm scrim={s} onSaved={refresh} /> : "—"}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div className="flex flex-col">
+                  {list.map((s, i) => {
+                    const mineA = s.team_a.id === team;
+                    const won = mineA ? s.score_a > s.score_b : s.score_b > s.score_a;
+                    return (
+                      <div key={s.id} className="flex flex-wrap items-center justify-between gap-2.5 border-t border-white/5 px-1 py-2.5" style={up(200 + Math.min(i, 10) * 50, 420)}>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-sm font-bold">{s.team_a.name} <span className="text-slate-500">vs</span> {s.team_b.name}</span>
+                          <span className="text-xs text-slate-400">{fmtDate(s.scheduled_at)} · {s.format}</span>
+                        </div>
+                        {s.status === "PLAYED" && (
+                          <div style={{ animation: "rhPop calc(var(--rh-k) * 320ms) var(--ease-out) both" }}>
+                            <Badge color={s.score_a === s.score_b ? "slate" : won ? "green" : "red"}>
+                              {s.score_a === s.score_b ? "Pareggio" : won ? "Vittoria" : "Sconfitta"} {s.score_a}–{s.score_b}
+                            </Badge>
+                          </div>
+                        )}
+                        {s.status === "SCHEDULED" && <Button size="sm" variant="outline" onClick={() => setScoring(s)}>Risultato</Button>}
+                        {s.status === "CANCELLED" && <Badge>Annullata</Badge>}
+                      </div>
+                    );
+                  })}
+                </div>
               ) : <Empty>Nessuna scrim.</Empty>}
             </Card>
           </>
         )}
       </QueryState>
-      <Modal open={!!candidates} onClose={() => setCandidates(null)} title="Avversari compatibili" wide>
-        {candidates && <Candidates data={candidates} />}
+      <Modal open={!!candidates} onClose={() => setCandidates(null)} wide title="Avversari compatibili"
+        eyebrow={candidates && `${candidates.req.format} · ${fmtDate(candidates.req.preferred_start)}`}>
+        {candidates && <Candidates data={candidates.list} />}
+      </Modal>
+      <Modal open={!!scoring} onClose={() => setScoring(null)} title={scoring ? `${scoring.team_a.tag} vs ${scoring.team_b.tag}` : ""} eyebrow={scoring?.format}>
+        {scoring && <ResultPicker a={scoring.team_a.name} b={scoring.team_b.name} options={resultOptions(scoring.format)} onPick={report.mutate} disabled={report.isPending} />}
       </Modal>
     </div>
   );
