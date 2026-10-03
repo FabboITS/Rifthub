@@ -164,7 +164,7 @@ export default function ScoutingBrowse() {
               <div className="grid gap-4 md:grid-cols-2">
                 <CompareRadar metrics={d.metrics} nameA={d.a.nickname} nameB={d.b.nickname} />
                 <table className="w-full self-center text-sm">
-                  <thead className="text-xs uppercase text-slate-400"><tr><th className="text-left">Metrica</th><th className="text-hex">{d.a.nickname}</th><th className="text-gold">{d.b.nickname}</th></tr></thead>
+                  <thead className="text-[13px] text-slate-400"><tr><th className="text-left">Metrica</th><th className="text-hex">{d.a.nickname}</th><th className="text-gold">{d.b.nickname}</th></tr></thead>
                   <tbody>
                     {d.metrics.map((m) => (
                       <tr key={m.key} className="border-t border-slate-700/60 text-center">

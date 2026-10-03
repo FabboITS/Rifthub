@@ -4,12 +4,12 @@ import { SIDE_COLOR } from "../lib/tactics";
 import RiftMap from "./RiftMap";
 
 function Token({ el, icon }) {
-  const x = el.x * 100, y = el.y * 100, color = SIDE_COLOR[el.team_side] || "#e2e8f0";
+  const x = el.x * 100, y = el.y * 100, color = SIDE_COLOR[el.team_side] || "#f4ece3";
   const clip = `clip-${el.id || `${el.champion}-${el.team_side}`}`.replace(/[^\w-]/g, "");
   return (
     <g>
       <circle cx={x} cy={y} r="3.3" fill={color} />
-      <text x={x} y={y + 1.2} fontSize="3.4" textAnchor="middle" fontWeight="bold" fill="#0f172a">{(el.champion || "?")[0]}</text>
+      <text x={x} y={y + 1.2} fontSize="3.4" textAnchor="middle" fontWeight="bold" fill="#030202">{(el.champion || "?")[0]}</text>
       {icon && (
         <>
           <clipPath id={clip}><circle cx={x} cy={y} r="2.8" /></clipPath>
@@ -23,7 +23,7 @@ function Token({ el, icon }) {
 
 function Element({ el, icon }) {
   const x = el.x * 100, y = el.y * 100;
-  const color = el.color || SIDE_COLOR[el.team_side] || "#e2e8f0";
+  const color = el.color || SIDE_COLOR[el.team_side] || "#f4ece3";
   switch (el.type) {
     case "CHAMPION_TOKEN":
       return <Token el={el} icon={icon} />;
@@ -31,7 +31,7 @@ function Element({ el, icon }) {
       return (
         <g>
           <circle cx={x} cy={y} r="7" fill={color} opacity="0.08" />
-          <path d={`M${x},${y - 1.6} L${x + 1.2},${y} L${x},${y + 1.6} L${x - 1.2},${y} Z`} fill={color} stroke="#0f172a" strokeWidth="0.3" />
+          <path d={`M${x},${y - 1.6} L${x + 1.2},${y} L${x},${y + 1.6} L${x - 1.2},${y} Z`} fill={color} stroke="#030202" strokeWidth="0.3" />
         </g>
       );
     case "ARROW":
@@ -43,7 +43,7 @@ function Element({ el, icon }) {
       return <circle cx={x} cy={y} r={Math.max(r, 1)} fill={color} fillOpacity="0.12" stroke={color} strokeWidth="0.6" />;
     }
     case "TEXT":
-      return <text x={x} y={y} fontSize="3" fill={color} textAnchor="middle" paintOrder="stroke" stroke="#0f172a" strokeWidth="0.6">{el.text}</text>;
+      return <text x={x} y={y} fontSize="3" fill={color} textAnchor="middle" paintOrder="stroke" stroke="#030202" strokeWidth="0.6">{el.text}</text>;
     default:
       return null;
   }
@@ -72,7 +72,7 @@ export default function BoardCanvas({ elements, onMapPointerDown, onElementPoint
           <path d="M4,0 L0,0 0,4" fill="none" stroke="#1f3b2d" strokeWidth="0.3" />
         </pattern>
         <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
-          <path d="M0,0 L10,5 L0,10 Z" fill="#e2e8f0" />
+          <path d="M0,0 L10,5 L0,10 Z" fill="#f4ece3" />
         </marker>
       </defs>
       <RiftMap />

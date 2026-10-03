@@ -1,11 +1,14 @@
 import { MutationCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MotionConfig, motion } from "motion/react";
 import { useLayoutEffect, useState } from "react";
 import toast, { Toaster, resolveValue } from "react-hot-toast";
-import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
-import { Embers, Toast } from "./components/ds";
+import { Navigate, Route, Routes, useLocation, useOutlet } from "react-router-dom";
+import { Toast } from "./components/ds";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
+import RiftBackground from "./components/RiftBackground";
+import { PageTransition, RouteWipe } from "./components/Transitions";
 import { AuthProvider } from "./context/AuthContext";
 import AIChat from "./pages/AIChat";
 import { Login, Register } from "./pages/Auth";
@@ -44,19 +47,24 @@ function createQueryClient() {
 
 function Layout() {
   const { pathname } = useLocation();
-  useLayoutEffect(() => window.scrollTo(0, 0), [pathname]);
+  const outlet = useOutlet();
+  // Graffe obbligatorie: in alcuni browser scrollTo restituisce una Promise, che React tratterebbe come cleanup (crash).
+  useLayoutEffect(() => { window.scrollTo(0, 0); }, [pathname]);
   return (
     <ProtectedRoute>
-      <Embers />
+      <RiftBackground intensity="calm" />
       <Navbar />
-      <main className="relative z-[1] mx-auto max-w-[1280px] px-5 pb-[72px] pt-8">
-        <ErrorBoundary key={pathname}>
-          <div style={{ animation: "rhPage calc(var(--rh-k) * 480ms) var(--ease-out) both" }}><Outlet /></div>
-        </ErrorBoundary>
+      <main className="relative z-[1] mx-auto max-w-[1320px] px-5 pb-20 pt-10">
+        <PageTransition id={pathname}>
+          <ErrorBoundary key={pathname}>{outlet}</ErrorBoundary>
+        </PageTransition>
       </main>
     </ProtectedRoute>
   );
 }
+
+/** Sezioni di primo livello: cambiarle sostituisce l'intero guscio (home ↔ accesso ↔ app). */
+const section = (p) => (p === "/" ? "home" : p === "/login" || p === "/register" ? "auth" : "app");
 
 const TOAST_TONE = { success: "success", error: "danger" };
 
@@ -71,43 +79,60 @@ function DsToast({ t }) {
 }
 
 function NotFound() {
-  return <p className="p-8 text-center text-slate-400">Pagina non trovata.</p>;
+  return (
+    <div className="flex flex-col items-start gap-3 py-16">
+      <h1 style={{ margin: 0, font: "900 clamp(48px,8vw,96px)/.9 var(--font-display)" }}>Fuori mappa</h1>
+      <p style={{ margin: 0, maxWidth: 420 }}>Questa pagina non esiste. Torna alla dashboard dal menu in alto.</p>
+    </div>
+  );
+}
+
+function AppRoutes() {
+  const location = useLocation();
+  return (
+    <motion.div key={section(location.pathname)} initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { duration: 0.4, delay: 0.15 } }}>
+      <Routes location={location}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route index element={<Home />} />
+        <Route path="/home" element={<Navigate to="/" replace />} />
+        <Route element={<Layout />}>
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="teams" element={<Teams />} />
+          <Route path="teams/:id" element={<TeamDetail />} />
+          <Route path="scrims" element={<Scrims />} />
+          <Route path="tournaments" element={<Tournaments />} />
+          <Route path="tournaments/:id" element={<TournamentDetail />} />
+          <Route path="scouting" element={<Scouting />} />
+          <Route path="scouting/browse" element={<ScoutingBrowse />} />
+          <Route path="scouting/matches" element={<ScoutingMatches />} />
+          <Route path="tactics" element={<Tactics />} />
+          <Route path="tactics/shadow/:sessionId" element={<Shadow />} />
+          <Route path="tactics/:id" element={<TacticBoardPage />} />
+          <Route path="vod" element={<Vods />} />
+          <Route path="vod/:id" element={<VodDetail />} />
+          <Route path="coaching" element={<Coaching />} />
+          <Route path="draft" element={<Draft />} />
+          <Route path="ai" element={<AIChat />} />
+          <Route path="fantalol" element={<FantaLol />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
+        </Routes>
+    </motion.div>
+  );
 }
 
 export default function App() {
   const [queryClient] = useState(createQueryClient);
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Toaster position="top-right" containerStyle={{ top: 72, right: 20 }}>{(t) => <DsToast t={t} />}</Toaster>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route index element={<Home />} />
-          <Route path="/home" element={<Navigate to="/" replace />} />
-          <Route element={<Layout />}>
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="teams" element={<Teams />} />
-            <Route path="teams/:id" element={<TeamDetail />} />
-            <Route path="scrims" element={<Scrims />} />
-            <Route path="tournaments" element={<Tournaments />} />
-            <Route path="tournaments/:id" element={<TournamentDetail />} />
-            <Route path="scouting" element={<Scouting />} />
-            <Route path="scouting/browse" element={<ScoutingBrowse />} />
-            <Route path="scouting/matches" element={<ScoutingMatches />} />
-            <Route path="tactics" element={<Tactics />} />
-            <Route path="tactics/shadow/:sessionId" element={<Shadow />} />
-            <Route path="tactics/:id" element={<TacticBoardPage />} />
-            <Route path="vod" element={<Vods />} />
-            <Route path="vod/:id" element={<VodDetail />} />
-            <Route path="coaching" element={<Coaching />} />
-            <Route path="draft" element={<Draft />} />
-            <Route path="ai" element={<AIChat />} />
-            <Route path="fantalol" element={<FantaLol />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-      </AuthProvider>
+      <MotionConfig reducedMotion="user">
+        <AuthProvider>
+          <Toaster position="top-right" containerStyle={{ top: 80, right: 20, zIndex: 95 }}>{(t) => <DsToast t={t} />}</Toaster>
+          <RouteWipe />
+          <AppRoutes />
+        </AuthProvider>
+      </MotionConfig>
     </QueryClientProvider>
   );
 }

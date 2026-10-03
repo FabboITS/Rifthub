@@ -46,14 +46,14 @@ function AvailabilityGrid({ teamId, slots, editable }) {
       <div className="flex flex-col gap-1.5">
         {WEEKDAYS.map((dn, d) => (
           <div key={dn} className="grid items-center gap-1.5" style={cols}>
-            <span className="text-[11px] font-extrabold uppercase tracking-[.1em] text-slate-400">{dn}</span>
+            <span className="text-[13px] font-semibold text-slate-400">{dn}</span>
             {HOURS.map((h) => {
               const on = !!slotAt(slots, d, h);
               return (
                 <button key={h} type="button" aria-label={`${dn} ${h}:00`} aria-pressed={on} disabled={!editable || toggle.isPending}
                   onClick={() => toggle.mutate({ day: d, h })}
                   className="h-[30px] rounded-lg border transition-all duration-[260ms] enabled:cursor-pointer enabled:hover:border-hex/70 enabled:active:scale-90"
-                  style={{ background: on ? "linear-gradient(135deg,#1f8fc4,#6fd6f6)" : "rgba(255,255,255,.04)", borderColor: on ? "rgba(191,255,254,.6)" : "var(--border-subtle)", boxShadow: on ? "0 0 14px rgba(61,191,235,.45)" : "none", transform: on ? "none" : "scale(.92)" }} />
+                  style={{ background: on ? "linear-gradient(135deg,#1f8fc4,#ff9a52)" : "rgba(255,255,255,.04)", borderColor: on ? "rgba(191,255,254,.6)" : "var(--border-subtle)", boxShadow: on ? "0 0 14px rgba(255,107,26,.45)" : "none", transform: on ? "none" : "scale(.92)" }} />
               );
             })}
           </div>
@@ -78,7 +78,7 @@ export default function TeamDetail() {
     <QueryState query={team}>
       {(t) => (
         <div className="flex flex-col gap-5">
-          <Link to="/teams" className="flex items-center gap-1.5 self-start text-[11px] font-extrabold uppercase tracking-[.14em] !text-slate-400 transition hover:-translate-x-1 hover:!text-white">
+          <Link to="/teams" className="flex items-center gap-1.5 self-start text-[13px] font-semibold !text-slate-400 transition hover:-translate-x-1 hover:!text-white">
             <Icon name="chevron-left" size={14} />Team
           </Link>
           <PageHeader eyebrow={null} title={<>{t.name} <span className="text-hex" style={{ textShadow: "var(--text-glow)" }}>[{t.tag}]</span></>} subtitle={t.description}>

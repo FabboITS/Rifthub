@@ -37,7 +37,7 @@ export default function Tournaments() {
                   <Card interactive glow={t.status === "RUNNING"} padding={20} onClick={() => navigate(`/tournaments/${t.id}`)} style={{ height: "100%", boxSizing: "border-box" }}>
                     <div className="flex flex-col gap-3">
                       <div className="self-start"><Badge color={tone} dot>{txt}</Badge></div>
-                      <span className="text-base font-extrabold uppercase leading-tight tracking-[.04em]">{t.name}</span>
+                      <span className="font-display text-[22px] font-extrabold leading-tight">{t.name}</span>
                       <span className="text-[13px] text-slate-400">
                         {fmtDate(t.start_date, "d MMM yyyy")} · {t.format === "SINGLE_ELIM" ? "Eliminazione diretta" : "Round robin"} · {t.entries.length}/{t.max_teams} team
                       </span>

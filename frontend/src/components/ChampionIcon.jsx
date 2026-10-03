@@ -25,7 +25,7 @@ export default function ChampionIcon({ name, size = 32 }) {
   const [failedSrc, setFailedSrc] = useState(null);
   const failed = failedSrc === champ?.icon;
   const style = { width: size, height: size };
-  if (!champ || failed) {
+  if (!champ?.icon || failed) {
     return (
       <span
         title={name}
@@ -37,7 +37,7 @@ export default function ChampionIcon({ name, size = 32 }) {
     );
   }
   return (
-    <img src={champ.icon} alt={champ.name} title={champ.name} style={style}
+    <img src={champ.icon} alt={champ.name} title={champ.name} style={style} loading="lazy" decoding="async"
       draggable={false} className="rounded-[10px] border border-white/15" onError={() => setFailedSrc(champ.icon)} />
   );
 }

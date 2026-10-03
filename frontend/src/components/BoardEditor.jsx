@@ -9,13 +9,13 @@ import { mmss } from "../lib/format";
 import { useChampions } from "../lib/hooks";
 import { interpolateFrames, stripIds } from "../lib/tactics";
 import BoardCanvas from "./BoardCanvas";
-import { Select } from "./ui";
+import { Confirm, Field, Modal, Select } from "./ui";
 
 const TOOLS = [
   ["move", "Sposta", Hand], ["CHAMPION_TOKEN", "Campione", User], ["WARD", "Ward", Eye], ["ARROW", "Freccia", MoveUpRight],
   ["CIRCLE", "Cerchio", Circle], ["TEXT", "Testo", Type], ["erase", "Cancella", Eraser],
 ];
-const COLORS = ["#38bdf8", "#f87171", "#facc15", "#34d399", "#a78bfa", "#e2e8f0"];
+const COLORS = ["#5aa9ff", "#ff6b1a", "#ffb547", "#6fd99b", "#c9bcb0", "#f4ece3"];
 const STEP_MS = 1500;
 
 /**
@@ -33,6 +33,8 @@ export default function BoardEditor({ board, readOnly = false, frameIndex, onFra
   const [color, setColor] = useState(COLORS[0]);
   const [champion, setChampion] = useState("Ahri");
   const [pending, setPending] = useState(null); // arrow/circle start point
+  const [textAt, setTextAt] = useState(null); // { x, y, text } while the text popup is open
+  const [ask, setAsk] = useState(null); // pending confirmation (see Confirm)
   const [hover, setHover] = useState(null);
   const dragging = useRef(null);
   const [playing, setPlaying] = useState(false);
@@ -73,11 +75,9 @@ export default function BoardEditor({ board, readOnly = false, frameIndex, onFra
     if (readOnly || !frame || playing) return;
     const base = { team_side: side, color: "" };
     if (tool === "CHAMPION_TOKEN") updateElements((els) => [...els, { ...base, type: tool, champion, ...p }]);
-    else if (tool === "WARD") updateElements((els) => [...els, { ...base, type: tool, color: side === "BLUE" ? "#facc15" : "#f87171", ...p }]);
-    else if (tool === "TEXT") {
-      const text = window.prompt("Testo da inserire");
-      if (text) updateElements((els) => [...els, { ...base, type: tool, text: text.slice(0, 200), color, ...p }]);
-    } else if (tool === "ARROW" || tool === "CIRCLE") {
+    else if (tool === "WARD") updateElements((els) => [...els, { ...base, type: tool, color: side === "BLUE" ? "#ffb547" : "#ff6b1a", ...p }]);
+    else if (tool === "TEXT") setTextAt({ ...p, text: "" });
+    else if (tool === "ARROW" || tool === "CIRCLE") {
       if (!pending) setPending(p);
       else {
         updateElements((els) => [...els, { ...base, type: tool, color, x: pending.x, y: pending.y, x2: p.x, y2: p.y }]);
@@ -127,6 +127,24 @@ export default function BoardEditor({ board, readOnly = false, frameIndex, onFra
         <BoardCanvas elements={shown} preview={preview}
           onMapPointerDown={onMapDown} onElementPointerDown={onElementDown}
           onPointerMove={onMove} onPointerUp={() => { dragging.current = null; }} />
+        <Modal open={!!textAt} onClose={() => setTextAt(null)} title="Aggiungi testo" eyebrow="Lavagna">
+          <form className="space-y-3" onSubmit={(e) => {
+            e.preventDefault();
+            const { text, ...p } = textAt;
+            if (text.trim()) updateElements((els) => [...els, { team_side: side, type: "TEXT", text: text.trim(), color, ...p }]);
+            setTextAt(null);
+          }}>
+            <Field label="Testo">
+              <input className="input" autoFocus maxLength={200} value={textAt?.text || ""} placeholder="es. Ward qui al minuto 3"
+                onChange={(e) => setTextAt({ ...textAt, text: e.target.value })} />
+            </Field>
+            <div className="flex gap-2">
+              <button type="button" className="btn-ghost flex-1" onClick={() => setTextAt(null)}>Annulla</button>
+              <button className="btn-primary flex-1" disabled={!textAt?.text.trim()}>Inserisci</button>
+            </div>
+          </form>
+        </Modal>
+        <Confirm ask={ask} onClose={() => setAsk(null)} />
         {/* timeline */}
         <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
           <button className="btn-gold shrink-0" aria-label={playing ? "Pausa" : "Play"} disabled={frames.length < 2}
@@ -134,7 +152,12 @@ export default function BoardEditor({ board, readOnly = false, frameIndex, onFra
             {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
           </button>
           {frames.map((f, i) => (
-            <button key={f.id} onClick={() => { setPlaying(false); if (!dirty || window.confirm("Modifiche non salvate: cambiare frame?")) { setDirty(false); setIndex(i); } }}
+            <button key={f.id} onClick={() => {
+              setPlaying(false);
+              const go = () => { setDirty(false); setIndex(i); };
+              if (!dirty) go();
+              else if (i !== index) setAsk({ title: "Cambiare frame?", body: "Le modifiche non salvate di questo frame andranno perse.", label: "Cambia frame", danger: true, run: go });
+            }}
               className={`shrink-0 rounded-lg border px-3 py-1.5 text-left text-xs ${i === (playing ? Math.round(progress) : index) ? "border-hex bg-hex/15 text-hex" : "border-slate-700 text-slate-300 hover:bg-slate-800"}`}>
               <span className="block font-semibold">{f.label || `Frame ${i + 1}`}</span>
               <span className="text-slate-500">{mmss(f.game_time_seconds)}</span>
@@ -193,7 +216,7 @@ export default function BoardEditor({ board, readOnly = false, frameIndex, onFra
               <button className="btn-ghost" onClick={() => addFrame.mutate()}><Plus className="h-4 w-4" /> Nuovo</button>
               <button className="btn-ghost" onClick={() => duplicate.mutate()} disabled={!frame}><Copy className="h-4 w-4" /> Duplica</button>
               <button className="btn-ghost col-span-2 text-rose-300" disabled={!frame}
-                onClick={() => window.confirm("Eliminare il frame?") && remove.mutate()}>
+                onClick={() => setAsk({ title: "Eliminare il frame?", body: `${frame.label || `Frame ${index + 1}`} verrà eliminato definitivamente.`, label: "Elimina", danger: true, run: () => remove.mutate() })}>
                 <Trash2 className="h-4 w-4" /> Elimina frame
               </button>
             </div>

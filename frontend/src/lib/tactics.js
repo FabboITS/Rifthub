@@ -1,4 +1,4 @@
-export const SIDE_COLOR = { BLUE: "#38bdf8", RED: "#f87171" };
+export const SIDE_COLOR = { BLUE: "#5aa9ff", RED: "#ff6b1a" };
 
 const tokenKey = (e) => `${e.team_side}:${e.champion || e.text}`;
 

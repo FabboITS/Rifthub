@@ -29,7 +29,7 @@ function LikedPlayers({ team }) {
         {(list) => list.length ? (
           <div className="flex max-h-[560px] flex-col gap-2 overflow-y-auto pr-1">
             {list.map((c, i) => (
-              <div key={c.id} className="flex items-center gap-3 rounded-xl px-3 py-2.5" style={{ background: "rgba(11,9,32,.45)", animation: `rhToastIn calc(var(--rh-k) * 420ms) var(--ease-out) calc(var(--rh-k) * ${Math.min(i, 8) * 60}ms) both` }}>
+              <div key={c.id} className="flex items-center gap-3 rounded-xl px-3 py-2.5" style={{ background: "rgba(12,9,8,.45)", animation: `rhToastIn calc(var(--rh-k) * 420ms) var(--ease-out) calc(var(--rh-k) * ${Math.min(i, 8) * 60}ms) both` }}>
                 <span className="grid h-[34px] w-[34px] flex-none place-items-center rounded-full border border-magenta-light text-sm font-black" style={{ background: "var(--grad-tint-magenta)" }}>{c.nickname[0]}</span>
                 <div className="flex min-w-0 flex-1 flex-col">
                   <span className="flex items-center gap-1.5 truncate text-sm font-bold">{c.nickname} {c.liked_back && <Badge color="green">Match</Badge>}</span>

@@ -19,7 +19,7 @@ beforeEach(() => localStorage.clear());
 describe("App", () => {
   it("renders and sends anonymous users to the public home", async () => {
     render(<MemoryRouter initialEntries={["/"]}><App /></MemoryRouter>);
-    expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent(/Trova.*scrim/);
+    expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent(/Prepara.*Rift/);
   });
 });
 
@@ -86,13 +86,14 @@ describe("QueryState", () => {
 });
 
 describe("Home", () => {
-  it("cycles the hero module and opens the sign-in dialog", async () => {
+  it("highlights a role on the map and sends anonymous users to the login page", async () => {
     render(<MemoryRouter initialEntries={["/home"]}><App /></MemoryRouter>);
-    expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent(/Trova.*scrim/);
-    fireEvent.click(screen.getByRole("button", { name: "Successivo" }));
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/Conquista.*torneo/);
-    fireEvent.click(screen.getByRole("button", { name: /Vedi i tornei/ }));
-    expect(screen.getByRole("dialog", { name: "Accedi" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent(/Prepara.*Rift/);
+    fireEvent.click(screen.getByRole("button", { name: /Jungle/ }));
+    expect(screen.getByRole("button", { name: /Jungle/ })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText(/pathing della prima clear/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Cerca una scrim" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Bentornato" })).toBeInTheDocument();
     fireEvent.click(screen.getAllByRole("button", { name: "Accedi" }).at(-1));
     expect(await screen.findByRole("alert")).toHaveTextContent("Inserisci email e password");
   });

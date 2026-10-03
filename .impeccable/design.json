@@ -1,0 +1,582 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-03T09:59:03+00:00",
+  "title": "Design System: RiftHub",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Survey Paper",
+        "canonical": "oklch(95.4% 0.010 125.7)",
+        "tonalRamp": [
+          "#0a0c08",
+          "#232520",
+          "#3e413b",
+          "#5c5f59",
+          "#7c7e78",
+          "#9da099",
+          "#c2c5bf",
+          "#edf0e9"
+        ],
+        "cssVar": "--paper (rgb triplet in src/styles/ds.css)"
+      },
+      "sheet": {
+        "role": "neutral",
+        "displayName": "Clean Sheet",
+        "canonical": "oklch(98.2% 0.007 124.4)",
+        "tonalRamp": [
+          "#0a0c09",
+          "#232521",
+          "#3f403c",
+          "#5d5e5a",
+          "#7c7e7a",
+          "#9d9f9b",
+          "#c3c5c0",
+          "#edefea"
+        ],
+        "cssVar": "--sheet (rgb triplet in src/styles/ds.css)"
+      },
+      "sunk": {
+        "role": "neutral",
+        "displayName": "Sunk Field",
+        "canonical": "oklch(92.1% 0.016 126.8)",
+        "tonalRamp": [
+          "#090c06",
+          "#22251d",
+          "#3d4139",
+          "#5b5f56",
+          "#7b7f75",
+          "#9ca096",
+          "#c1c6bb",
+          "#ecf1e5"
+        ],
+        "cssVar": "--sunk (rgb triplet in src/styles/ds.css)"
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Survey Ink",
+        "canonical": "oklch(25.7% 0.018 158.5)",
+        "tonalRamp": [
+          "#050d08",
+          "#1d2721",
+          "#38433c",
+          "#55615a",
+          "#758179",
+          "#96a29a",
+          "#bbc8c0",
+          "#e5f2ea"
+        ],
+        "cssVar": "--ink (rgb triplet in src/styles/ds.css)"
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink Second",
+        "canonical": "oklch(42.5% 0.021 158.4)",
+        "tonalRamp": [
+          "#040e08",
+          "#1b2720",
+          "#37433c",
+          "#546159",
+          "#738179",
+          "#94a39a",
+          "#b9c8bf",
+          "#e3f3e9"
+        ],
+        "cssVar": "--ink-2 (rgb triplet in src/styles/ds.css)"
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Ink Third",
+        "canonical": "oklch(50.1% 0.019 156.5)",
+        "tonalRamp": [
+          "#050e08",
+          "#1c2720",
+          "#38433c",
+          "#556159",
+          "#748179",
+          "#95a299",
+          "#bbc8bf",
+          "#e5f3e9"
+        ],
+        "cssVar": "--ink-3 (rgb triplet in src/styles/ds.css)"
+      },
+      "grid": {
+        "role": "primary",
+        "displayName": "Grid Overprint Magenta",
+        "canonical": "oklch(53.1% 0.202 5.6)",
+        "tonalRamp": [
+          "#210007",
+          "#49001c",
+          "#780434",
+          "#b0004d",
+          "#d7336c",
+          "#ff5b8c",
+          "#ffa7ba",
+          "#ffe4ea"
+        ],
+        "cssVar": "--grid (rgb triplet in src/styles/ds.css)"
+      },
+      "grid-deep": {
+        "role": "primary",
+        "displayName": "Deep Overprint",
+        "canonical": "oklch(46.7% 0.177 5.4)",
+        "tonalRamp": [
+          "#1f0007",
+          "#4a001d",
+          "#790034",
+          "#a71a4f",
+          "#ce436e",
+          "#f5678f",
+          "#ffa6ba",
+          "#ffe4ea"
+        ],
+        "cssVar": "hard-coded #a3134c in .btn-primary hover (src/styles/index.css)"
+      },
+      "river": {
+        "role": "secondary",
+        "displayName": "River Blue",
+        "canonical": "oklch(61.4% 0.093 228.0)",
+        "tonalRamp": [
+          "#000e1e",
+          "#00293d",
+          "#004866",
+          "#046786",
+          "#3688a8",
+          "#5aaacc",
+          "#81d0f3",
+          "#abfcff"
+        ],
+        "cssVar": "--river (rgb triplet in src/styles/ds.css)"
+      },
+      "river-ink": {
+        "role": "secondary",
+        "displayName": "River Ink",
+        "canonical": "oklch(44.3% 0.078 234.1)",
+        "tonalRamp": [
+          "#000d22",
+          "#002844",
+          "#004663",
+          "#296583",
+          "#4b85a5",
+          "#6ca7c8",
+          "#91cdf0",
+          "#bbf8ff"
+        ],
+        "cssVar": "--river-ink (rgb triplet in src/styles/ds.css)"
+      },
+      "jungle": {
+        "role": "secondary",
+        "displayName": "Jungle Green",
+        "canonical": "oklch(72.6% 0.089 134.4)",
+        "tonalRamp": [
+          "#001100",
+          "#0f2c00",
+          "#2a4914",
+          "#486833",
+          "#678952",
+          "#87ab72",
+          "#acd197",
+          "#d6fcc0"
+        ],
+        "cssVar": "--jungle (rgb triplet in src/styles/ds.css)"
+      },
+      "jungle-ink": {
+        "role": "secondary",
+        "displayName": "Jungle Ink",
+        "canonical": "oklch(44.8% 0.100 140.5)",
+        "tonalRamp": [
+          "#001200",
+          "#002e00",
+          "#1d4c13",
+          "#3c6b33",
+          "#5b8c52",
+          "#7cae72",
+          "#a1d597",
+          "#cbffc0"
+        ],
+        "cssVar": "--jungle-ink (rgb triplet in src/styles/ds.css)"
+      },
+      "lane": {
+        "role": "secondary",
+        "displayName": "Lane Ochre",
+        "canonical": "oklch(75.1% 0.130 79.8)",
+        "tonalRamp": [
+          "#210000",
+          "#421400",
+          "#623300",
+          "#835200",
+          "#a57300",
+          "#c8942e",
+          "#f0ba59",
+          "#ffeabc"
+        ],
+        "cssVar": "--lane (rgb triplet in src/styles/ds.css)"
+      },
+      "lane-ink": {
+        "role": "secondary",
+        "displayName": "Lane Ink",
+        "canonical": "oklch(49.6% 0.102 72.4)",
+        "tonalRamp": [
+          "#220000",
+          "#401600",
+          "#5f3400",
+          "#805301",
+          "#a27330",
+          "#c59452",
+          "#edba78",
+          "#ffe9c1"
+        ],
+        "cssVar": "--lane-ink (rgb triplet in src/styles/ds.css)"
+      },
+      "blue-side": {
+        "role": "tertiary",
+        "displayName": "Blue Side",
+        "canonical": "oklch(48.6% 0.131 259.7)",
+        "tonalRamp": [
+          "#000038",
+          "#001b61",
+          "#0d3b83",
+          "#2d5ba6",
+          "#4c7cca",
+          "#6d9eef",
+          "#99c5ff",
+          "#d8f0ff"
+        ],
+        "cssVar": "--blue (rgb triplet in src/styles/ds.css)"
+      },
+      "red-side": {
+        "role": "tertiary",
+        "displayName": "Red Side",
+        "canonical": "oklch(55.5% 0.184 28.5)",
+        "tonalRamp": [
+          "#210000",
+          "#4d0000",
+          "#7e0000",
+          "#ad1713",
+          "#d44338",
+          "#fc6859",
+          "#ffa89a",
+          "#ffe5df"
+        ],
+        "cssVar": "--red (rgb triplet in src/styles/ds.css)"
+      },
+      "bad": {
+        "role": "tertiary",
+        "displayName": "Survey Error Red",
+        "canonical": "oklch(50.0% 0.182 29.5)",
+        "tonalRamp": [
+          "#210000",
+          "#4d0000",
+          "#7e0000",
+          "#ad1a10",
+          "#d44536",
+          "#fb6957",
+          "#ffa89a",
+          "#ffe5de"
+        ],
+        "cssVar": "--bad (rgb triplet in src/styles/ds.css)"
+      }
+    },
+    "derivedColors": [
+      {
+        "name": "line",
+        "value": "rgb(28 38 32 / .16)",
+        "purpose": "Hairline: every divider and resting border."
+      },
+      {
+        "name": "line-strong",
+        "value": "rgb(28 38 32 / .5)",
+        "purpose": "Control borders, empty-state dashes."
+      },
+      {
+        "name": "*-wash",
+        "value": "tint at 8-22% alpha (grid .09, river .14, jungle .22, lane .2, blue/red .1, bad .08)",
+        "purpose": "Badge fills, chosen-option fields, map base quadrants."
+      }
+    ],
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Plate titles and the home hero; condensed 66-68%."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Home band headings; dialog titles a step below at 24px / 75%."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Sheet legend headers and row titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text in ink-2, max 58-62ch."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Form and reading labels, sentence case."
+      },
+      "control": {
+        "displayName": "Control",
+        "purpose": "Buttons, nav, tags, badges; 0.14em word spacing when stretched."
+      },
+      "reading": {
+        "displayName": "Reading",
+        "purpose": "Stat values in readings strips."
+      },
+      "reading-small": {
+        "displayName": "Reading small",
+        "purpose": "Plate refs, coordinates, dates, axis ticks, scale bars."
+      }
+    },
+    "fonts": {
+      "source": "Google Fonts: Archivo ital,wdth 62..125,wght 100..900; Martian Mono wdth 75..112.5, wght 300..700",
+      "cssVars": {
+        "--font": "\"Archivo\", system-ui, sans-serif",
+        "--mono": "\"Martian Mono\", ui-monospace, monospace"
+      }
+    },
+    "shadows": [
+      {
+        "name": "lift",
+        "value": "0 18px 40px -16px rgb(28 38 32 / .32), 0 2px 6px -2px rgb(28 38 32 / .16)",
+        "purpose": "Floating layers only: dialog, toast, auth sheet, swipe card. Paired with a full ink border."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(.16, 1, .3, 1)",
+        "purpose": "Every arrival and slide."
+      },
+      {
+        "name": "rh-k",
+        "value": "1",
+        "purpose": "Multiplier on every authored duration (--rh-k)."
+      },
+      {
+        "name": "rhUp",
+        "value": "480ms",
+        "purpose": "Sheets rise 10px and fade in; staggered in plate headers."
+      },
+      {
+        "name": "rhSheet",
+        "value": "560ms",
+        "purpose": "Page arrives as a sheet clipped up from below."
+      },
+      {
+        "name": "rhDraw",
+        "value": "900ms",
+        "purpose": "Dashed route draws from the fountain to a locality."
+      },
+      {
+        "name": "rhGrow",
+        "value": "800ms",
+        "purpose": "Score bars grow from the left."
+      },
+      {
+        "name": "rhModalIn",
+        "value": "320ms",
+        "purpose": "Dialog rises 12px; scrim fades in 200ms."
+      },
+      {
+        "name": "plate-tick",
+        "value": "~260ms total",
+        "purpose": "Plate number counts up from 00."
+      },
+      {
+        "name": "graticule-slide",
+        "value": "500ms",
+        "purpose": "Active graticule column slides to the current plate."
+      },
+      {
+        "name": "state",
+        "value": "150ms",
+        "purpose": "Colour transitions on controls and rows."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "1ms",
+        "purpose": "prefers-reduced-motion collapses all animation and transition."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px",
+        "purpose": "Inline plate nav appears; below it the Indice overlay is used."
+      },
+      {
+        "name": "container",
+        "value": "1320px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one action per region: magenta overprint fill.",
+      "html": "<button class=\"ds-btn-primary\">Accedi <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px;border:1px solid rgb(var(--grid));border-radius:2px;background:rgb(var(--grid));color:#fff;font:600 14px/1 var(--font);font-stretch:87.5%;word-spacing:.14em;cursor:pointer;transition:background-color 150ms,border-color 150ms}.ds-btn-primary:hover{background:#a3134c}.ds-btn-primary:active{transform:translateY(1px)}.ds-btn-primary:focus-visible{outline:2px solid rgb(var(--grid));outline-offset:2px}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Default secondary action: strong-line outline, sunk on hover.",
+      "html": "<button class=\"ds-btn-outline\">Crea account</button>",
+      "css": ".ds-btn-outline{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px;border:1px solid var(--line-strong);border-radius:2px;background:transparent;color:rgb(var(--ink));font:600 14px/1 var(--font);font-stretch:87.5%;word-spacing:.14em;cursor:pointer;transition:background-color 150ms,border-color 150ms}.ds-btn-outline:hover{border-color:rgb(var(--ink));background:rgb(var(--sunk))}.ds-btn-outline:active{transform:translateY(1px)}.ds-btn-outline:focus-visible{outline:2px solid rgb(var(--grid));outline-offset:2px}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Toolbar and dismiss actions without a border.",
+      "html": "<button class=\"ds-btn-ghost\">Annulla</button>",
+      "css": ".ds-btn-ghost{display:inline-flex;align-items:center;height:40px;padding:0 16px;border:1px solid transparent;border-radius:2px;background:transparent;color:rgb(var(--ink-2));font:600 14px/1 var(--font);font-stretch:87.5%;cursor:pointer;transition:background-color 150ms,color 150ms}.ds-btn-ghost:hover{background:rgb(var(--sunk));color:rgb(var(--ink))}.ds-btn-ghost:focus-visible{outline:2px solid rgb(var(--grid));outline-offset:2px}"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Labelled field on the clean sheet; magenta border and ring on focus.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Email</span><span class=\"ds-input\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"rgb(91 103 95)\" stroke-width=\"1.6\"><rect x=\"2\" y=\"4\" width=\"20\" height=\"16\" rx=\"2\"/><path d=\"m22 7-10 6L2 7\"/></svg><input placeholder=\"nome@team.gg\"></span></label>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:6px;font-family:var(--font)}.ds-field-label{font-size:13px;font-weight:600;color:rgb(var(--ink-2))}.ds-input{display:flex;align-items:center;gap:10px;height:44px;padding:0 12px;border:1px solid var(--line-strong);border-radius:2px;background:rgb(var(--sheet));transition:border-color 150ms,box-shadow 150ms}.ds-input:focus-within{border-color:rgb(var(--grid));box-shadow:0 0 0 2px rgb(var(--grid) / .25)}.ds-input input{flex:1;min-width:0;border:0;background:transparent;font:400 15px var(--font);color:rgb(var(--ink));outline:none;caret-color:rgb(var(--grid))}.ds-input input::placeholder{color:rgb(var(--ink-3))}"
+    },
+    {
+      "name": "Tag",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "Selectable filter chip: outline at rest, magenta fill when pressed.",
+      "html": "<div class=\"ds-tags\"><button class=\"ds-tag\" aria-pressed=\"true\">Mid</button><button class=\"ds-tag\" aria-pressed=\"false\">Jungle</button><button class=\"ds-tag\" aria-pressed=\"false\">Support</button></div>",
+      "css": ".ds-tags{display:flex;gap:6px;flex-wrap:wrap}.ds-tag{display:inline-flex;align-items:center;height:32px;padding:0 12px;border:1px solid var(--line-strong);border-radius:2px;background:rgb(var(--sheet));color:rgb(var(--ink-2));font:600 13px/1 var(--font);font-stretch:87.5%;cursor:pointer;transition:border-color 150ms,color 150ms}.ds-tag:hover{border-color:rgb(var(--ink));color:rgb(var(--ink))}.ds-tag[aria-pressed=true]{border-color:rgb(var(--grid));background:rgb(var(--grid));color:#fff}.ds-tag:focus-visible{outline:2px solid rgb(var(--grid));outline-offset:2px}"
+    },
+    {
+      "name": "Sheet with legend header",
+      "kind": "card",
+      "refersTo": "sheet",
+      "description": "The flat data plane: hairline border, square corners, title/action header ruled off.",
+      "html": "<section class=\"ds-sheet\"><header><h2>Tornei attivi</h2><a href=\"#\">Tutti</a></header><div class=\"ds-row\"><span>Rift Academy Cup</span><span class=\"ds-badge\">Iscrizioni aperte</span></div><div class=\"ds-row\"><span>Lega Accademie EUW</span><span class=\"ds-badge ds-badge-ok\">In corso</span></div></section>",
+      "css": ".ds-sheet{border:1px solid var(--line);background:rgb(var(--sheet));color:rgb(var(--ink));font-family:var(--font);max-width:420px}.ds-sheet header{display:flex;align-items:center;justify-content:space-between;min-height:48px;padding:10px 20px;border-bottom:1px solid var(--line)}.ds-sheet h2{margin:0;font-size:15px;font-weight:700}.ds-sheet a{color:rgb(var(--river-ink));font-size:13px;font-weight:600;text-decoration:underline;text-decoration-color:rgb(var(--river-ink) / .35);text-underline-offset:3px}.ds-sheet a:hover{text-decoration-color:currentColor}.ds-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 20px;border-top:1px solid var(--line);font:500 14px/1.35 var(--font);transition:background 150ms}.ds-sheet header+.ds-row{border-top:0}.ds-row:hover{background:rgb(var(--sunk) / .7)}.ds-badge{display:inline-flex;align-items:center;height:22px;padding:0 8px;border:1px solid rgb(var(--lane-ink) / .45);border-radius:2px;background:var(--lane-wash);color:rgb(var(--lane-ink));font-size:12px;font-weight:600;font-stretch:87.5%}.ds-badge-ok{border-color:rgb(var(--jungle-ink) / .45);background:var(--jungle-wash);color:rgb(var(--jungle-ink))}"
+    },
+    {
+      "name": "Header with graticule",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Wordmark, plate links (active filled magenta) and the A–H graticule ruler with the current column overprinted.",
+      "html": "<header class=\"ds-nav\"><div class=\"ds-nav-bar\"><span class=\"ds-wordmark\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 32 32\"><path d=\"M4 28 L4 4 L28 4\" fill=\"none\" stroke=\"rgb(28 38 32)\" stroke-width=\"2.2\"/><path d=\"M4 28 L28 4\" stroke=\"rgb(194 24 91)\" stroke-width=\"3\"/><circle cx=\"4\" cy=\"28\" r=\"3.6\" fill=\"rgb(47 93 168)\"/><circle cx=\"28\" cy=\"4\" r=\"3.6\" fill=\"rgb(200 55 45)\"/></svg>RiftHub</span><a class=\"ds-nav-item\" aria-current=\"page\">Dashboard</a><a class=\"ds-nav-item\">Team</a><a class=\"ds-nav-item\">Scrim</a><a class=\"ds-nav-item\">Tornei</a></div><div class=\"ds-graticule\"><span>A</span><span class=\"on\">B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span></div></header>",
+      "css": ".ds-nav{background:rgb(var(--paper));border-bottom:1px solid rgb(var(--ink));font-family:var(--font);padding:0 16px}.ds-nav-bar{display:flex;align-items:center;gap:4px;height:56px}.ds-wordmark{display:flex;align-items:center;gap:10px;margin-right:16px;font-size:20px;font-weight:800;font-stretch:72%;letter-spacing:-.01em;color:rgb(var(--ink))}.ds-nav-item{display:flex;align-items:center;height:32px;padding:0 10px;border-radius:2px;font-size:14px;font-weight:600;font-stretch:87.5%;color:rgb(var(--ink-2));text-decoration:none;cursor:pointer;transition:background-color 150ms,color 150ms}.ds-nav-item:hover{background:rgb(var(--sunk));color:rgb(var(--ink))}.ds-nav-item[aria-current=page]{background:rgb(var(--grid));color:#fff}.ds-graticule{display:grid;grid-template-columns:repeat(8,1fr);height:18px;border-top:1px solid var(--line)}.ds-graticule span{display:flex;align-items:center;justify-content:center;border-left:1px solid var(--line);font:400 10px var(--mono);color:rgb(var(--ink-3))}.ds-graticule span:first-child{border-left:0}.ds-graticule .on{background:rgb(var(--grid));color:#fff}"
+    },
+    {
+      "name": "Plate header",
+      "kind": "custom",
+      "refersTo": "typography.display",
+      "description": "Signature page header: condensed display title, plate number and grid ref in mono, italic place, locator inset.",
+      "html": "<header class=\"ds-plate\"><div><h1>Ciao, Marco Manager</h1><p>Panoramica della tua attività competitiva.</p></div><span class=\"ds-plate-ref\"><span><b>Tav. 01 · B7</b><i>Nexus blu</i></span><svg viewBox=\"0 0 8 8\" width=\"40\" height=\"40\"><rect width=\"8\" height=\"8\" fill=\"rgb(143 179 122 / .22)\"/><path d=\"M0 8 L0 0 L8 0 M0 8 L8 8 L8 0 M0 8 L8 0\" fill=\"none\" stroke=\"rgb(217 164 65)\" stroke-width=\".5\"/><rect x=\"1\" y=\"6\" width=\"1\" height=\"1\" fill=\"rgb(194 24 91)\"/></svg></span></header>",
+      "css": ".ds-plate{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px 40px;border-top:1px solid rgb(var(--ink));padding-top:16px;font-family:var(--font);color:rgb(var(--ink))}.ds-plate h1{margin:0;font-size:clamp(2.25rem,4.6vw,4rem);font-weight:800;font-stretch:68%;line-height:.95;letter-spacing:-.012em;word-spacing:.14em}.ds-plate p{margin:12px 0 0;max-width:62ch;font-size:16px;line-height:1.625;color:rgb(var(--ink-2))}.ds-plate-ref{display:flex;align-items:center;gap:12px;font-size:12px;color:rgb(var(--ink-3))}.ds-plate-ref>span{display:flex;flex-direction:column;align-items:flex-end;line-height:1.25}.ds-plate-ref b{font:400 12px var(--mono);font-stretch:87.5%;color:rgb(var(--ink))}.ds-plate-ref svg{border:1px solid rgb(var(--ink))}"
+    },
+    {
+      "name": "Readings strip",
+      "kind": "custom",
+      "refersTo": "typography.reading",
+      "description": "Page-level counts as a ruled survey strip instead of stat cards.",
+      "html": "<dl class=\"ds-readings\"><div><dt>Scrim giocate</dt><dd>2</dd></div><div><dt>Win rate</dt><dd>100%</dd></div><div><dt>Prossime scrim</dt><dd>1</dd></div></dl>",
+      "css": ".ds-readings{display:flex;flex-wrap:wrap;margin:0;border-top:1px solid rgb(var(--ink));border-bottom:1px solid rgb(var(--ink));font-family:var(--font)}.ds-readings>div{display:flex;align-items:baseline;gap:12px;padding:12px 20px}.ds-readings>div:first-child{padding-left:0}.ds-readings>div+div{border-left:1px solid var(--line)}.ds-readings dt{font-size:13px;font-weight:600;color:rgb(var(--ink-2))}.ds-readings dd{margin:0;font:500 20px/1 var(--mono);font-stretch:87.5%;letter-spacing:-.01em;font-variant-numeric:tabular-nums;color:rgb(var(--ink))}"
+    },
+    {
+      "name": "Empty (unsurveyed ground)",
+      "kind": "custom",
+      "refersTo": "sheet",
+      "description": "Empty state as hatched ground with the next step in words.",
+      "html": "<p class=\"ds-empty\">Nessuna scrim in programma. Pubblica una richiesta per trovare un avversario.</p>",
+      "css": ".ds-empty{margin:0;padding:24px 20px;border:1px dashed var(--line-strong);background-image:repeating-linear-gradient(135deg,rgb(var(--ink) / .06) 0 1px,transparent 1px 7px);text-align:center;font:400 14px/1.5 var(--font);color:rgb(var(--ink-2))}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Surveyed Atlas",
+    "overview": "RiftHub is set as a printed survey atlas of Summoner's Rift. Every section is a numbered plate (tavola) with a place name, a grid reference and a locator inset; the app's chrome is a coordinate frame, not a dashboard shell. The ground is a cool survey sheet, the ink is green-black, and the only loud colour is a magenta grid overprint that marks where you are and what you can do. Region tints (jungle, river, lane) appear only where they describe real ground or carry status.\n\nDensity is that of a reference sheet: flat paper planes divided by one weight of hairline, readings in a monospaced face, headings that get their authority from scale and condensed width rather than colour or decoration. The ornament is the structure itself: the A–H graticule under the header, plate numbers that tick into place, register-style ruled strips, hatching for unsurveyed (empty) ground. This world replaces the earlier dark neon esports theme and explicitly refuses its devices: glass cards, glow, halo shadows and gradients.",
+    "keyCharacteristics": [
+      "Cool paper ground, green-black ink, one magenta overprint for action, selection and routes.",
+      "Flat sheets with a single 1px hairline; square corners on surfaces, a 2px nick on controls.",
+      "Archivo at variable widths for everything; hierarchy from size and condensation alone.",
+      "Martian Mono for every reading: coordinates, plate numbers, ranks, scores, times, counts.",
+      "Outline at rest, filled when active.",
+      "Cartographic structure as ornament: graticule, grid refs, locator insets, dashed routes, hatching."
+    ],
+    "rules": [
+      {
+        "name": "The One Overprint Rule",
+        "body": "Magenta means \"here\" or \"do this\": action, selection, focus, route. It never decorates, never colours a heading, and never stands in for a status.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink Twin Rule",
+        "body": "Each terrain tint has an ink twin. Tints fill areas and washes; text, borders and icons on paper use the ink twin (`river-ink`, `jungle-ink`, `lane-ink`) so tone text stays legible.",
+        "section": "colors"
+      },
+      {
+        "name": "The Sides Are Sides Rule",
+        "body": "Blue side and red side mean the two teams on the Rift. Errors use `bad`.",
+        "section": "colors"
+      },
+      {
+        "name": "The Scale-Only Rule",
+        "body": "Hierarchy comes from size, weight and width. Headings are ink, never coloured.",
+        "section": "typography"
+      },
+      {
+        "name": "The Reading Rule",
+        "body": "If it is a measurement (rank, KDA, score, time, date, count, grid ref, plate number), it is set in Martian Mono with tabular figures.",
+        "section": "typography"
+      },
+      {
+        "name": "The Water Italic Rule",
+        "body": "Place names, water names and map captions (the plate's place under its grid ref, \"Fiume\", the atlas tagline) are set in italic, as on a map.",
+        "section": "typography"
+      },
+      {
+        "name": "The Plate Rule",
+        "body": "Every routed section is a plate: it has a number, a place on the Rift, a grid ref derived from its coordinates, and a header that shows them. New sections are added to the atlas index, not invented as free pages.",
+        "section": "layout"
+      },
+      {
+        "name": "The Flat Sheet Rule",
+        "body": "Cards, rows, readings and the map rest flat. A shadow means the element is lifted off the page (modal, toast, draggable card); nothing glows, and no surface uses a gradient (the skeleton shimmer is the only moving fill).",
+        "section": "elevation"
+      },
+      {
+        "name": "The One Hairline Rule",
+        "body": "All rules and borders are 1px. Emphasis is a darker line (16% to 50% to full ink), never a thicker one. Roads and routes on the plate are terrain, not rules, and are exempt.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do put every new colour through `ds.css` as an RGB triplet and map it in Tailwind; reach for `paper`, `sheet`, `sunk` and the ink steps before anything else.",
+      "Do use grid magenta only for the primary action, the active/selected state, focus and routes.",
+      "Do set every measured value in Martian Mono with tabular figures, and place and water names in italic.",
+      "Do separate with 1px hairlines and darken the line for emphasis (16% to 50% to full ink).",
+      "Do show state as outline at rest and fill when active (tags, nav, badges `solid`, map pins).",
+      "Do give every routed section a plate number, place, grid ref and locator through the atlas index and the plate header.",
+      "Do render empty states as hatched unsurveyed ground with the next step in words.",
+      "Do honour `--rh-k` and reduced motion in any new animation."
+    ],
+    "donts": [
+      "Don't bring back the dark neon esports look: no glass cards, backdrop blur, glow, halo shadows or gradient fills.",
+      "Don't add shadows to resting surfaces; the lift shadow is for floating layers only.",
+      "Don't colour headings or make hierarchy with colour; use size, weight and width.",
+      "Don't use blue side or red side for info and error states, or tint fills (`river`, `jungle`, `lane`) as text colour on paper.",
+      "Don't round sheets, or round controls past the 2px nick.",
+      "Don't thicken rules for emphasis; rules are 1px (map roads and routes excepted).",
+      "Don't put small uppercase tracked labels above titles; captions sit beneath the title, in mono, and only when they carry a reading."
+    ]
+  }
+}

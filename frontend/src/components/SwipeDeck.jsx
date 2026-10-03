@@ -16,17 +16,17 @@ function PlayerCardView({ card, drag }) {
         style={{ borderColor: "var(--red-500)", color: "var(--red-500)", opacity: Math.max(0, Math.min(1, -drag / 90)) }}>PASS</span>
       <div className="flex items-center gap-3.5">
         <span className="grid h-16 w-16 flex-none place-items-center overflow-hidden rounded-full border border-hex text-[26px] font-black"
-          style={{ background: "var(--grad-tint-cyan)", boxShadow: "0 0 18px rgba(61,191,235,.4)" }}>
+          style={{ background: "var(--grad-tint-cyan)", boxShadow: "0 0 18px rgba(255,107,26,.4)" }}>
           {card.avatar_url ? <img src={card.avatar_url} alt="" className="h-16 w-16" draggable={false} /> : card.nickname[0]}
         </span>
         <div className="flex min-w-0 flex-col gap-0.5">
-          <h2 className="m-0 truncate text-[26px] font-black uppercase leading-none">{card.nickname}</h2>
+          <h2 className="m-0 truncate font-display text-[34px] font-black leading-none">{card.nickname}</h2>
           <span className="text-[13px] text-slate-400">{card.real_name || "—"}{card.age ? `, ${card.age} anni` : ""}</span>
         </div>
         {card.fit_score !== undefined && (
           <div className="ml-auto text-right">
             <div className="rh-mono text-[26px] font-bold leading-none text-hex" style={{ textShadow: "var(--text-glow)" }}>{card.fit_score}</div>
-            <div className="text-[10px] font-extrabold uppercase tracking-[.14em] text-slate-500">fit</div>
+            <div className="text-[13px] font-semibold text-slate-500">fit</div>
           </div>
         )}
       </div>
@@ -44,7 +44,7 @@ function PlayerCardView({ card, drag }) {
 }
 
 const cardClass = "absolute inset-0 flex select-none flex-col gap-3.5 overflow-hidden rounded-[20px] border p-[22px] touch-none";
-const cardStyle = { borderColor: "rgba(224,164,58,.3)", background: "rgba(18,15,46,.82)", backdropFilter: "var(--blur-glass)", boxShadow: "var(--shadow-card),0 0 40px rgba(84,34,115,.5)" };
+const cardStyle = { borderColor: "rgba(255,181,71,.3)", background: "rgba(22,17,15,.82)", backdropFilter: "var(--blur-glass)", boxShadow: "var(--shadow-card),0 0 40px rgba(92,34,8,.5)" };
 
 /** Tinder-style deck: drag, buttons or ←/→ keys. Calls onSwipe(card, "LIKE"|"PASS") right away; the card flies out on its own. */
 export default function SwipeDeck({ cards, onSwipe, disabled }) {
@@ -103,13 +103,13 @@ export default function SwipeDeck({ cards, onSwipe, disabled }) {
           </div>
           <div className="flex gap-7">
             <button type="button" onClick={() => swipe("PASS")} disabled={disabled} aria-label="Scarta"
-              className="grid h-16 w-16 cursor-pointer place-items-center rounded-full border-2 transition duration-200 hover:-translate-y-0.5 hover:bg-[rgba(255,77,109,.16)] hover:shadow-[0_0_22px_rgba(255,77,109,.45)] active:scale-[.92]"
-              style={{ borderColor: "var(--red-500)", background: "rgba(255,77,109,.06)", color: "var(--red-500)" }}>
+              className="grid h-16 w-16 cursor-pointer place-items-center rounded-full border-2 transition duration-200 hover:-translate-y-0.5 hover:bg-[rgba(255,75,62,.16)] hover:shadow-[0_0_22px_rgba(255,75,62,.45)] active:scale-[.92]"
+              style={{ borderColor: "var(--red-500)", background: "rgba(255,75,62,.06)", color: "var(--red-500)" }}>
               <Icon name="x" size={28} />
             </button>
             <button type="button" onClick={() => swipe("LIKE")} disabled={disabled} aria-label="Mi piace"
-              className="grid h-16 w-16 cursor-pointer place-items-center rounded-full border-2 transition duration-200 hover:-translate-y-0.5 hover:bg-[rgba(62,230,168,.16)] hover:shadow-[0_0_22px_rgba(62,230,168,.45)] active:scale-[.92]"
-              style={{ borderColor: "var(--green-500)", background: "rgba(62,230,168,.06)", color: "var(--green-500)" }}>
+              className="grid h-16 w-16 cursor-pointer place-items-center rounded-full border-2 transition duration-200 hover:-translate-y-0.5 hover:bg-[rgba(111,217,155,.16)] hover:shadow-[0_0_22px_rgba(111,217,155,.45)] active:scale-[.92]"
+              style={{ borderColor: "var(--green-500)", background: "rgba(111,217,155,.06)", color: "var(--green-500)" }}>
               <Icon name="heart" size={28} />
             </button>
           </div>

@@ -58,13 +58,13 @@ export default function Teams() {
           <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))" }}>
             {list.map((t, i) => (
               <Link key={t.id} to={`/teams/${t.id}`} style={up(80 + Math.min(i, 8) * 80, 560)}
-                className="card group !p-0 overflow-hidden !text-white transition duration-200 hover:-translate-y-1 hover:border-hex/55 hover:shadow-[var(--shadow-card),0_0_24px_rgba(61,191,235,.25)]">
+                className="card group !p-0 overflow-hidden !text-white transition duration-200 hover:-translate-y-1 hover:border-hex/55 hover:shadow-[var(--shadow-card),0_0_24px_rgba(255,107,26,.25)]">
                 <div className="relative h-[110px]" style={{ background: `var(--grad-tint-${TINTS[i % TINTS.length]})` }}>
                   <div className="absolute inset-0" style={{ background: "var(--grad-scrim-bottom)" }} />
                   <span className="absolute bottom-3 left-5 text-[44px] font-black leading-none tracking-[.02em]">{t.tag}</span>
                 </div>
                 <div className="flex flex-col gap-3 px-5 py-[18px]">
-                  <span className="text-[15px] font-extrabold uppercase tracking-[.06em]">{t.name}</span>
+                  <span className="font-display text-[19px] font-extrabold">{t.name}</span>
                   <div className="flex flex-wrap gap-1.5">
                     <Badge color="hex">{t.region}</Badge>
                     <Badge color="gold">{label(t.tier)}</Badge>

@@ -1,6 +1,6 @@
 import { ArrowLeftRight, Ban, Lock, RotateCcw, Search, Undo2 } from "lucide-react";
 import { useState } from "react";
-import { findChampion } from "../components/ChampionIcon";
+import ChampionIcon, { findChampion } from "../components/ChampionIcon";
 import { Badge, Card, Field, PageHeader, QueryState, Select } from "../components/ui";
 import { DRAFT_ORDER, boardOf, unavailable, winsNeeded } from "../lib/draft";
 import { useChampions } from "../lib/hooks";
@@ -15,7 +15,7 @@ function Slot({ champ, champions, active, side }) {
   const c = champ && findChampion(champions, champ);
   return (
     <div className={`flex h-16 items-center gap-3 rounded-lg px-2 ${SIDE[side].bg} ${active ? `ring-2 ${SIDE[side].ring} animate-pulse` : ""}`}>
-      {c ? <img src={c.icon} alt="" className="h-12 w-12 rounded" draggable={false} /> : <div className="h-12 w-12 rounded bg-slate-800" />}
+      {c ? <ChampionIcon name={c.id} size={48} /> : <div className="h-12 w-12 rounded bg-slate-800" />}
       <span className="truncate font-semibold">{c?.name || (active ? "Sta scegliendo..." : "")}</span>
     </div>
   );
@@ -28,7 +28,7 @@ function BanRow({ bans, champions, activeIndex }) {
         const c = bans[i] && findChampion(champions, bans[i]);
         return (
           <div key={i} className={`relative h-9 w-9 overflow-hidden rounded bg-slate-800 ${activeIndex === i ? "ring-2 ring-gold" : ""}`} title={c?.name}>
-            {c && <img src={c.icon} alt={c.name} className="h-full w-full grayscale" draggable={false} />}
+            {c && <span className="grayscale"><ChampionIcon name={c.id} size={36} /></span>}
             {i < bans.length && <Ban className="absolute inset-1 h-7 w-7 text-rose-500/80" />}
           </div>
         );
@@ -139,7 +139,7 @@ export default function Draft() {
                         return (
                           <button key={c.id} disabled={off} onClick={() => setSelected(c.id)} title={c.name}
                             className={`rounded p-1 text-center text-[10px] transition ${selected === c.id ? "bg-gold/20 ring-2 ring-gold" : "hover:bg-slate-700/60"} ${off ? "cursor-not-allowed opacity-25 grayscale" : ""}`}>
-                            <img src={c.icon} alt="" loading="lazy" className="mx-auto h-12 w-12 rounded" draggable={false} />
+                            <span className="mx-auto block w-12"><ChampionIcon name={c.id} size={48} /></span>
                             <span className="block truncate">{c.name}</span>
                           </button>
                         );
@@ -161,7 +161,7 @@ export default function Draft() {
                         <span className="w-20 text-slate-400">G{i + 1} · {g.winner}</span>
                         {[...g.picks.BLUE, ...g.picks.RED].map((c) => {
                           const ch = findChampion(champions, c);
-                          return ch && <img key={c} src={ch.icon} alt={ch.name} title={ch.name} className="h-6 w-6 rounded" />;
+                          return ch && <ChampionIcon key={c} name={ch.id} size={24} />;
                         })}
                       </div>
                     ))}

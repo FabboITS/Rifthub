@@ -9,8 +9,8 @@ export function MiniRadar({ data, height = 170 }) {
   return (
     <svg viewBox="-6 0 152 146" style={{ width: "100%", height, overflow: "visible" }} role="img" aria-label="Statistiche">
       {[1, 0.66, 0.33].map((f) => <polygon key={f} points={poly(data.map(() => 100 * f))} fill="none" stroke="rgba(255,255,255,.1)" />)}
-      <polygon points={poly(data.map((d) => d.value))} fill="rgba(61,191,235,.25)" stroke="#6fd6f6" strokeWidth="1.5"
-        style={{ filter: "drop-shadow(0 0 6px rgba(61,191,235,.6))", transition: "all 300ms" }} />
+      <polygon points={poly(data.map((d) => d.value))} fill="rgba(255,107,26,.25)" stroke="#ff9a52" strokeWidth="1.5"
+        style={{ filter: "drop-shadow(0 0 6px rgba(255,107,26,.6))", transition: "all 300ms" }} />
       {data.map((d, i) => {
         const [x, y] = at(i, 64);
         return <text key={d.metric} x={x} y={y + 2} textAnchor="middle" fontSize="7" fill="#a59fba" fontFamily="Urbanist" fontWeight="700">{d.metric}</text>;
@@ -23,12 +23,12 @@ export function CompareRadar({ metrics, nameA, nameB }) {
   return (
     <ResponsiveContainer width="100%" height={340}>
       <RadarChart data={metrics} outerRadius="72%">
-        <PolarGrid stroke="#33276f" />
+        <PolarGrid stroke="#3a2e27" />
         <PolarAngleAxis dataKey="metric" tick={{ fill: "#c9c2d6", fontSize: 11 }} />
-        <Radar name={nameA} dataKey="a" stroke="#3dbfeb" fill="#3dbfeb" fillOpacity={0.3} />
-        <Radar name={nameB} dataKey="b" stroke="#e0a43a" fill="#e0a43a" fillOpacity={0.3} />
+        <Radar name={nameA} dataKey="a" stroke="#ff6b1a" fill="#ff6b1a" fillOpacity={0.3} />
+        <Radar name={nameB} dataKey="b" stroke="#ffb547" fill="#ffb547" fillOpacity={0.3} />
         <Legend />
-        <Tooltip contentStyle={{ background: "#120f2e", border: "1px solid #33276f" }} />
+        <Tooltip contentStyle={{ background: "#16110f", border: "1px solid #3a2e27" }} />
       </RadarChart>
     </ResponsiveContainer>
   );

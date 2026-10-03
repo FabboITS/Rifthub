@@ -29,3 +29,13 @@ globalThis.PointerEvent ??= class PointerEvent extends MouseEvent {
     this.pointerId = props.pointerId ?? 1;
   }
 };
+
+// motion/react usa IntersectionObserver (whileInView) e matchMedia (reduced motion): jsdom non li ha.
+globalThis.IntersectionObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+window.matchMedia ??= (query) => ({ matches: false, media: query, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} });
+// jsdom non implementa canvas: lo sfondo animato si disattiva da solo.
+HTMLCanvasElement.prototype.getContext = () => null;

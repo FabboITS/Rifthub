@@ -3,20 +3,37 @@
 @tailwind utilities;
 
 @layer base {
-  body { @apply min-h-screen font-sans font-medium text-slate-200 antialiased; background: var(--grad-page) fixed; }
-  h1, h2, h3 { @apply text-white; }
-  select option { @apply bg-slate-900; }
+  html { background: var(--void); }
+  body { @apply min-h-screen antialiased; font: 400 16px/1.55 var(--font-body); color: var(--sand); background: var(--void); }
+  h1, h2, h3, h4 { color: var(--bone); font-family: var(--font-display); letter-spacing: .005em; }
+  select option { background: var(--obsidian); color: var(--bone); }
+  code { font-family: ui-monospace, monospace; font-size: .9em; color: var(--molten); }
 }
 
 @layer components {
-  .card { @apply rounded-[20px] border border-white/10 p-5; background: var(--surface-glass); backdrop-filter: var(--blur-glass); box-shadow: var(--shadow-card); }
-  .btn { @apply inline-flex h-9 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full px-[18px] text-[11px] font-extrabold uppercase tracking-[.14em] transition duration-200 active:scale-[.97] disabled:cursor-not-allowed disabled:opacity-40; }
-  .btn-primary { @apply btn border border-white/35 text-white hover:brightness-110; background: var(--grad-cta); box-shadow: var(--glow-cta); text-shadow: 0 1px 6px rgba(20,40,110,.45); }
-  .btn-gold { @apply btn border border-white/45 text-white hover:border-white hover:bg-white/10; }
+  /* Pannello: basalto con bordo caldo e un filo d'arancio in alto quando attivo */
+  .card {
+    @apply relative flex-col rounded-[12px] border p-5;
+    border-color: var(--border-subtle);
+    background: linear-gradient(180deg, rgba(34,26,22,.75), rgba(18,13,11,.78));
+    backdrop-filter: var(--blur-glass);
+    box-shadow: var(--shadow-card);
+    transition: border-color var(--dur-base) var(--ease-out);
+  }
+  .card:hover { border-color: rgba(255,170,110,.2); }
+
+  .btn { @apply inline-flex h-10 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-[6px] px-4 transition duration-200 active:scale-[.97] disabled:cursor-not-allowed disabled:opacity-40; font: 700 15px/1 var(--font-display); letter-spacing: .03em; }
+  .btn-primary { @apply btn text-[#1a0a02]; background: var(--grad-cta); box-shadow: var(--glow-cta); }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-gold { @apply btn border text-[color:var(--bone)]; border-color: var(--border-strong); }
+  .btn-gold:hover { border-color: var(--forge); color: var(--forge); background: rgba(255,107,26,.06); }
   .btn-outline { @apply btn-gold; }
-  .btn-ghost { @apply btn text-slate-200 hover:bg-white/10 hover:text-white; }
-  .btn-danger { @apply btn border border-rose-400/50 bg-rose-500/15 text-rose-200 hover:bg-rose-500/30; }
-  .input { @apply w-full rounded-[14px] border border-white/10 px-[18px] py-3 text-[15px] text-white placeholder-slate-500 transition focus:border-hex focus:outline-none focus:ring-[3px] focus:ring-hex-dark/20; background: var(--surface-input); }
-  .label { @apply mb-1.5 block text-[10px] font-extrabold uppercase tracking-[.14em] text-slate-400; }
-  .badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-[.12em]; }
+  .btn-ghost { @apply btn text-[color:var(--sand)] hover:bg-white/5 hover:text-[color:var(--bone)]; }
+  .btn-danger { @apply btn border; border-color: rgba(255,75,62,.5); background: rgba(255,75,62,.12); color: #ffb3a8; }
+  .btn-danger:hover { background: rgba(255,75,62,.22); }
+
+  .input { @apply w-full rounded-[8px] border px-4 py-2.5 text-[15px] transition placeholder:text-[color:var(--smoke)] focus:outline-none; color: var(--bone); border-color: var(--border-subtle); background: var(--surface-input); }
+  .input:focus { border-color: var(--forge); box-shadow: 0 0 0 3px rgba(255,107,26,.18); }
+  .label { @apply mb-1.5 block text-[13px] font-semibold; color: var(--smoke); }
+  .badge { @apply inline-flex items-center rounded-[4px] px-2 py-0.5 text-[12px] font-semibold; }
 }

@@ -1,0 +1,2894 @@
+diff --git a/frontend/REDESIGN.md b/frontend/REDESIGN.md
+new file mode 100644
+index 0000000..c543068
+--- /dev/null
++++ b/frontend/REDESIGN.md
+@@ -0,0 +1,26 @@
++# RiftHub — Redesign "Forge" (frontend)
++
++## Come applicarlo
++1. Sostituisci la cartella `frontend/` del repo con quella di questo zip (oppure applica `rifthub-redesign.patch` dalla root con `git apply rifthub-redesign.patch`).
++2. `cd frontend && npm install` (nuove dipendenze: `motion`, `@fontsource/big-shoulders-display`, `@fontsource/barlow`).
++3. `npm run dev`, oppure `docker compose up --build` come prima. Backend e API sono invariati.
++
++Verificato: `npm run lint`, `npm test` (9/9) e `npm run build` passano.
++
++## File nuovi
++- `src/components/RiftBackground.jsx` — sfondo animato su canvas (braci, strati topografici, calore, alone del cursore). Rispetta `prefers-reduced-motion` e si mette in pausa a tab nascosta.
++- `src/components/Transitions.jsx` — `RouteWipe` (lama diagonale lungo la mid lane a ogni cambio pagina) e `PageTransition` (uscita/entrata delle pagine).
++- `src/components/Brand.jsx` — marchio RiftHub (top lane + mid lane).
++
++## File riscritti
++- `src/components/RiftMap.jsx` — Summoner's Rift vettoriale (basi, corsie, fiume, Baron/Drago, giungla, torri, minion animati) + `RiftPositions` (le 10 posizioni T/J/M/A/S dell'immagine di riferimento) + `LiveRift` (mappa autonoma per la landing).
++- `src/styles/ds.css`, `src/styles/index.css`, `tailwind.config.js` — token del tema. I vecchi nomi (`--cyan-400`, `text-hex`, `slate-*`…) sono alias del nuovo tema, quindi tutte le pagine lo ereditano.
++- `src/components/ds.jsx`, `src/components/ui.jsx`, `src/components/Navbar.jsx`.
++- `src/pages/Home.jsx`, `src/pages/Auth.jsx`, `src/App.jsx`.
++
++## Ritocchi
++Colori fissi e etichette maiuscole delle altre pagine migrati al nuovo tema. `lib/tactics.js`: blu `#5aa9ff`, rosso `#ff6b1a`. Test aggiornati e polyfill jsdom per `motion` e canvas.
++
++## Note
++- I font sono self-hosted (Fontsource): nessuna chiamata a Google Fonts.
++- Nessun asset di Riot Games: mappa, icone e marchio sono disegnati in codice.
+diff --git a/frontend/index.html b/frontend/index.html
+index 5c0696f..ac27476 100644
+--- a/frontend/index.html
++++ b/frontend/index.html
+@@ -2,10 +2,9 @@
+ <html lang="it">
+   <head>
+     <meta charset="UTF-8" />
+-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><polygon points='50,5 95,50 50,95 5,50' fill='%230ac8b9'/></svg>" />
+-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800;900&family=Yellowtail&family=JetBrains+Mono:wght@500;600;700&display=swap" />
++    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
++    <meta name="theme-color" content="#030202" />
++    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%23030202'/><path d='M22 78 L22 22 L78 22' stroke='%23ff6b1a' stroke-width='10' fill='none'/><path d='M30 70 L70 30' stroke='%23ffb547' stroke-width='10'/></svg>" />
+     <title>RiftHub</title>
+   </head>
+   <body>
+diff --git a/frontend/package-lock.json b/frontend/package-lock.json
+index 3492e82..3b1c337 100644
+--- a/frontend/package-lock.json
++++ b/frontend/package-lock.json
+@@ -8,10 +8,13 @@
+       "name": "rifthub-frontend",
+       "version": "1.0.0",
+       "dependencies": {
++        "@fontsource/barlow": "^5.3.0",
++        "@fontsource/big-shoulders-display": "^5.3.0",
+         "@tanstack/react-query": "^5.62.0",
+         "axios": "^1.7.9",
+         "date-fns": "^4.1.0",
+         "lucide-react": "^0.468.0",
++        "motion": "^11.18.2",
+         "react": "^18.3.1",
+         "react-dom": "^18.3.1",
+         "react-hot-toast": "^2.4.1",
+@@ -1081,6 +1084,24 @@
+         "node": "^18.18.0 || ^20.9.0 || >=21.1.0"
+       }
+     },
++    "node_modules/@fontsource/barlow": {
++      "version": "5.3.0",
++      "resolved": "https://registry.npmjs.org/@fontsource/barlow/-/barlow-5.3.0.tgz",
++      "integrity": "sha512-tGR0y6QObRtKv71MOth44222+mdNFM/ZWFWDV1VLzNbG4oK9PNRlyJzmkck4vHAi9ibHBXgt4SlY51amFP55CA==",
++      "license": "OFL-1.1",
++      "funding": {
++        "url": "https://github.com/sponsors/ayuhito"
++      }
++    },
++    "node_modules/@fontsource/big-shoulders-display": {
++      "version": "5.3.0",
++      "resolved": "https://registry.npmjs.org/@fontsource/big-shoulders-display/-/big-shoulders-display-5.3.0.tgz",
++      "integrity": "sha512-d4+Tcsq/WfoKeqWfB6wFdeNDsSYYnilJbSNNpf5w53MlWrGHAc9YvkAjC6id6PgFDiGaFKsXfP0RFAQtpt0bog==",
++      "license": "OFL-1.1",
++      "funding": {
++        "url": "https://github.com/sponsors/ayuhito"
++      }
++    },
+     "node_modules/@humanfs/core": {
+       "version": "0.19.2",
+       "resolved": "https://registry.npmjs.org/@humanfs/core/-/core-0.19.2.tgz",
+@@ -1205,9 +1226,6 @@
+         "x64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1363,9 +1381,6 @@
+         "arm"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1380,9 +1395,6 @@
+         "arm"
+       ],
+       "dev": true,
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1397,9 +1409,6 @@
+         "arm64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1414,9 +1423,6 @@
+         "arm64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1431,9 +1437,6 @@
+         "loong64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1448,9 +1451,6 @@
+         "loong64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1465,9 +1465,6 @@
+         "ppc64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1482,9 +1479,6 @@
+         "ppc64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1499,9 +1493,6 @@
+         "riscv64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1516,9 +1507,6 @@
+         "riscv64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1533,9 +1521,6 @@
+         "s390x"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1550,9 +1535,6 @@
+         "x64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1567,9 +1549,6 @@
+         "x64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -3826,6 +3805,33 @@
+         "url": "https://github.com/sponsors/rawify"
+       }
+     },
++    "node_modules/framer-motion": {
++      "version": "11.18.2",
++      "resolved": "https://registry.npmjs.org/framer-motion/-/framer-motion-11.18.2.tgz",
++      "integrity": "sha512-5F5Och7wrvtLVElIpclDT0CBzMVg3dL22B64aZwHtsIY8RB4mXICLrkajK4G9R+ieSAGcgrLeae2SeUTg2pr6w==",
++      "license": "MIT",
++      "dependencies": {
++        "motion-dom": "^11.18.1",
++        "motion-utils": "^11.18.1",
++        "tslib": "^2.4.0"
++      },
++      "peerDependencies": {
++        "@emotion/is-prop-valid": "*",
++        "react": "^18.0.0 || ^19.0.0",
++        "react-dom": "^18.0.0 || ^19.0.0"
++      },
++      "peerDependenciesMeta": {
++        "@emotion/is-prop-valid": {
++          "optional": true
++        },
++        "react": {
++          "optional": true
++        },
++        "react-dom": {
++          "optional": true
++        }
++      }
++    },
+     "node_modules/fsevents": {
+       "version": "2.3.3",
+       "resolved": "https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz",
+@@ -5084,6 +5090,47 @@
+         "node": "*"
+       }
+     },
++    "node_modules/motion": {
++      "version": "11.18.2",
++      "resolved": "https://registry.npmjs.org/motion/-/motion-11.18.2.tgz",
++      "integrity": "sha512-JLjvFDuFr42NFtcVoMAyC2sEjnpA8xpy6qWPyzQvCloznAyQ8FIXioxWfHiLtgYhoVpfUqSWpn1h9++skj9+Wg==",
++      "license": "MIT",
++      "dependencies": {
++        "framer-motion": "^11.18.2",
++        "tslib": "^2.4.0"
++      },
++      "peerDependencies": {
++        "@emotion/is-prop-valid": "*",
++        "react": "^18.0.0 || ^19.0.0",
++        "react-dom": "^18.0.0 || ^19.0.0"
++      },
++      "peerDependenciesMeta": {
++        "@emotion/is-prop-valid": {
++          "optional": true
++        },
++        "react": {
++          "optional": true
++        },
++        "react-dom": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/motion-dom": {
++      "version": "11.18.1",
++      "resolved": "https://registry.npmjs.org/motion-dom/-/motion-dom-11.18.1.tgz",
++      "integrity": "sha512-g76KvA001z+atjfxczdRtw/RXOM3OMSdd1f4DL77qCTF/+avrRJiawSG4yDibEQ215sr9kpinSlX2pCTJ9zbhw==",
++      "license": "MIT",
++      "dependencies": {
++        "motion-utils": "^11.18.1"
++      }
++    },
++    "node_modules/motion-utils": {
++      "version": "11.18.1",
++      "resolved": "https://registry.npmjs.org/motion-utils/-/motion-utils-11.18.1.tgz",
++      "integrity": "sha512-49Kt+HKjtbJKLtgO/LKj9Ld+6vw9BjH5d9sc40R/kVyH8GLAXgT42M2NnuPcJNuA3s9ZfZBUcwIgpmZWGEE+hA==",
++      "license": "MIT"
++    },
+     "node_modules/ms": {
+       "version": "2.1.3",
+       "resolved": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz",
+@@ -6839,6 +6886,12 @@
+       "dev": true,
+       "license": "Apache-2.0"
+     },
++    "node_modules/tslib": {
++      "version": "2.8.1",
++      "resolved": "https://registry.npmjs.org/tslib/-/tslib-2.8.1.tgz",
++      "integrity": "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==",
++      "license": "0BSD"
++    },
+     "node_modules/type-check": {
+       "version": "0.4.0",
+       "resolved": "https://registry.npmjs.org/type-check/-/type-check-0.4.0.tgz",
+diff --git a/frontend/package.json b/frontend/package.json
+index afcecee..8e335aa 100644
+--- a/frontend/package.json
++++ b/frontend/package.json
+@@ -11,10 +11,13 @@
+     "test": "vitest run"
+   },
+   "dependencies": {
++    "@fontsource/barlow": "^5.3.0",
++    "@fontsource/big-shoulders-display": "^5.3.0",
+     "@tanstack/react-query": "^5.62.0",
+     "axios": "^1.7.9",
+     "date-fns": "^4.1.0",
+     "lucide-react": "^0.468.0",
++    "motion": "^11.18.2",
+     "react": "^18.3.1",
+     "react-dom": "^18.3.1",
+     "react-hot-toast": "^2.4.1",
+diff --git a/frontend/src/App.jsx b/frontend/src/App.jsx
+index 222f6f9..4187eab 100644
+--- a/frontend/src/App.jsx
++++ b/frontend/src/App.jsx
+@@ -1,11 +1,14 @@
+ import { MutationCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
++import { AnimatePresence, motion } from "motion/react";
+ import { useLayoutEffect, useState } from "react";
+ import toast, { Toaster, resolveValue } from "react-hot-toast";
+-import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
+-import { Embers, Toast } from "./components/ds";
++import { Navigate, Route, Routes, useLocation, useOutlet } from "react-router-dom";
++import { Toast } from "./components/ds";
+ import ErrorBoundary from "./components/ErrorBoundary";
+ import Navbar from "./components/Navbar";
+ import ProtectedRoute from "./components/ProtectedRoute";
++import RiftBackground from "./components/RiftBackground";
++import { PageTransition, RouteWipe } from "./components/Transitions";
+ import { AuthProvider } from "./context/AuthContext";
+ import AIChat from "./pages/AIChat";
+ import { Login, Register } from "./pages/Auth";
+@@ -44,20 +47,24 @@ function createQueryClient() {
+ 
+ function Layout() {
+   const { pathname } = useLocation();
++  const outlet = useOutlet();
+   useLayoutEffect(() => window.scrollTo(0, 0), [pathname]);
+   return (
+     <ProtectedRoute>
+-      <Embers />
++      <RiftBackground intensity="calm" />
+       <Navbar />
+-      <main className="relative z-[1] mx-auto max-w-[1280px] px-5 pb-[72px] pt-8">
+-        <ErrorBoundary key={pathname}>
+-          <div style={{ animation: "rhPage calc(var(--rh-k) * 480ms) var(--ease-out) both" }}><Outlet /></div>
+-        </ErrorBoundary>
++      <main className="relative z-[1] mx-auto max-w-[1320px] px-5 pb-20 pt-10">
++        <PageTransition id={pathname}>
++          <ErrorBoundary key={pathname}>{outlet}</ErrorBoundary>
++        </PageTransition>
+       </main>
+     </ProtectedRoute>
+   );
+ }
+ 
++/** Sezioni di primo livello: cambiarle sostituisce l'intero guscio (home ↔ accesso ↔ app). */
++const section = (p) => (p === "/" ? "home" : p === "/login" || p === "/register" ? "auth" : "app");
++
+ const TOAST_TONE = { success: "success", error: "danger" };
+ 
+ /** react-hot-toast rendered with the design-system Toast; an icon option of "🏆" etc. marks a reward. */
+@@ -71,16 +78,21 @@ function DsToast({ t }) {
+ }
+ 
+ function NotFound() {
+-  return <p className="p-8 text-center text-slate-400">Pagina non trovata.</p>;
++  return (
++    <div className="flex flex-col items-start gap-3 py-16">
++      <h1 style={{ margin: 0, font: "900 clamp(48px,8vw,96px)/.9 var(--font-display)" }}>Fuori mappa</h1>
++      <p style={{ margin: 0, maxWidth: 420 }}>Questa pagina non esiste. Torna alla dashboard dal menu in alto.</p>
++    </div>
++  );
+ }
+ 
+-export default function App() {
+-  const [queryClient] = useState(createQueryClient);
++function AppRoutes() {
++  const location = useLocation();
+   return (
+-    <QueryClientProvider client={queryClient}>
+-      <AuthProvider>
+-        <Toaster position="top-right" containerStyle={{ top: 72, right: 20 }}>{(t) => <DsToast t={t} />}</Toaster>
+-        <Routes>
++    <AnimatePresence mode="wait" initial={false}>
++      <motion.div key={section(location.pathname)} initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { duration: 0.4, delay: 0.2 } }}
++        exit={{ opacity: 0, transition: { duration: 0.25 } }}>
++        <Routes location={location}>
+           <Route path="/login" element={<Login />} />
+           <Route path="/register" element={<Register />} />
+           <Route index element={<Home />} />
+@@ -107,6 +119,19 @@ export default function App() {
+             <Route path="*" element={<NotFound />} />
+           </Route>
+         </Routes>
++      </motion.div>
++    </AnimatePresence>
++  );
++}
++
++export default function App() {
++  const [queryClient] = useState(createQueryClient);
++  return (
++    <QueryClientProvider client={queryClient}>
++      <AuthProvider>
++        <Toaster position="top-right" containerStyle={{ top: 80, right: 20, zIndex: 95 }}>{(t) => <DsToast t={t} />}</Toaster>
++        <RouteWipe />
++        <AppRoutes />
+       </AuthProvider>
+     </QueryClientProvider>
+   );
+diff --git a/frontend/src/components/BoardCanvas.jsx b/frontend/src/components/BoardCanvas.jsx
+index 0079dc8..80f1b58 100644
+--- a/frontend/src/components/BoardCanvas.jsx
++++ b/frontend/src/components/BoardCanvas.jsx
+@@ -4,12 +4,12 @@ import { SIDE_COLOR } from "../lib/tactics";
+ import RiftMap from "./RiftMap";
+ 
+ function Token({ el, icon }) {
+-  const x = el.x * 100, y = el.y * 100, color = SIDE_COLOR[el.team_side] || "#e2e8f0";
++  const x = el.x * 100, y = el.y * 100, color = SIDE_COLOR[el.team_side] || "#f4ece3";
+   const clip = `clip-${el.id || `${el.champion}-${el.team_side}`}`.replace(/[^\w-]/g, "");
+   return (
+     <g>
+       <circle cx={x} cy={y} r="3.3" fill={color} />
+-      <text x={x} y={y + 1.2} fontSize="3.4" textAnchor="middle" fontWeight="bold" fill="#0f172a">{(el.champion || "?")[0]}</text>
++      <text x={x} y={y + 1.2} fontSize="3.4" textAnchor="middle" fontWeight="bold" fill="#030202">{(el.champion || "?")[0]}</text>
+       {icon && (
+         <>
+           <clipPath id={clip}><circle cx={x} cy={y} r="2.8" /></clipPath>
+@@ -23,7 +23,7 @@ function Token({ el, icon }) {
+ 
+ function Element({ el, icon }) {
+   const x = el.x * 100, y = el.y * 100;
+-  const color = el.color || SIDE_COLOR[el.team_side] || "#e2e8f0";
++  const color = el.color || SIDE_COLOR[el.team_side] || "#f4ece3";
+   switch (el.type) {
+     case "CHAMPION_TOKEN":
+       return <Token el={el} icon={icon} />;
+@@ -31,7 +31,7 @@ function Element({ el, icon }) {
+       return (
+         <g>
+           <circle cx={x} cy={y} r="7" fill={color} opacity="0.08" />
+-          <path d={`M${x},${y - 1.6} L${x + 1.2},${y} L${x},${y + 1.6} L${x - 1.2},${y} Z`} fill={color} stroke="#0f172a" strokeWidth="0.3" />
++          <path d={`M${x},${y - 1.6} L${x + 1.2},${y} L${x},${y + 1.6} L${x - 1.2},${y} Z`} fill={color} stroke="#030202" strokeWidth="0.3" />
+         </g>
+       );
+     case "ARROW":
+@@ -43,7 +43,7 @@ function Element({ el, icon }) {
+       return <circle cx={x} cy={y} r={Math.max(r, 1)} fill={color} fillOpacity="0.12" stroke={color} strokeWidth="0.6" />;
+     }
+     case "TEXT":
+-      return <text x={x} y={y} fontSize="3" fill={color} textAnchor="middle" paintOrder="stroke" stroke="#0f172a" strokeWidth="0.6">{el.text}</text>;
++      return <text x={x} y={y} fontSize="3" fill={color} textAnchor="middle" paintOrder="stroke" stroke="#030202" strokeWidth="0.6">{el.text}</text>;
+     default:
+       return null;
+   }
+@@ -72,7 +72,7 @@ export default function BoardCanvas({ elements, onMapPointerDown, onElementPoint
+           <path d="M4,0 L0,0 0,4" fill="none" stroke="#1f3b2d" strokeWidth="0.3" />
+         </pattern>
+         <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+-          <path d="M0,0 L10,5 L0,10 Z" fill="#e2e8f0" />
++          <path d="M0,0 L10,5 L0,10 Z" fill="#f4ece3" />
+         </marker>
+       </defs>
+       <RiftMap />
+diff --git a/frontend/src/components/BoardEditor.jsx b/frontend/src/components/BoardEditor.jsx
+index 125005c..8dad726 100644
+--- a/frontend/src/components/BoardEditor.jsx
++++ b/frontend/src/components/BoardEditor.jsx
+@@ -15,7 +15,7 @@ const TOOLS = [
+   ["move", "Sposta", Hand], ["CHAMPION_TOKEN", "Campione", User], ["WARD", "Ward", Eye], ["ARROW", "Freccia", MoveUpRight],
+   ["CIRCLE", "Cerchio", Circle], ["TEXT", "Testo", Type], ["erase", "Cancella", Eraser],
+ ];
+-const COLORS = ["#38bdf8", "#f87171", "#facc15", "#34d399", "#a78bfa", "#e2e8f0"];
++const COLORS = ["#5aa9ff", "#ff6b1a", "#ffb547", "#6fd99b", "#c9bcb0", "#f4ece3"];
+ const STEP_MS = 1500;
+ 
+ /**
+@@ -73,7 +73,7 @@ export default function BoardEditor({ board, readOnly = false, frameIndex, onFra
+     if (readOnly || !frame || playing) return;
+     const base = { team_side: side, color: "" };
+     if (tool === "CHAMPION_TOKEN") updateElements((els) => [...els, { ...base, type: tool, champion, ...p }]);
+-    else if (tool === "WARD") updateElements((els) => [...els, { ...base, type: tool, color: side === "BLUE" ? "#facc15" : "#f87171", ...p }]);
++    else if (tool === "WARD") updateElements((els) => [...els, { ...base, type: tool, color: side === "BLUE" ? "#ffb547" : "#ff6b1a", ...p }]);
+     else if (tool === "TEXT") {
+       const text = window.prompt("Testo da inserire");
+       if (text) updateElements((els) => [...els, { ...base, type: tool, text: text.slice(0, 200), color, ...p }]);
+diff --git a/frontend/src/components/Bracket.jsx b/frontend/src/components/Bracket.jsx
+index 2024f5c..30cdbfb 100644
+--- a/frontend/src/components/Bracket.jsx
++++ b/frontend/src/components/Bracket.jsx
+@@ -36,7 +36,7 @@ export default function Bracket({ matches, onMatchClick }) {
+     <div className="overflow-x-auto pb-1.5">
+       <div className="mb-2.5 flex" style={{ gap: GAP_X, width }}>
+         {Array.from({ length: rounds }, (_, i) => (
+-          <span key={i} className="flex-none text-center text-[11px] font-extrabold uppercase tracking-[.14em] text-gold" style={{ width: W }}>{roundName(i + 1)}</span>
++          <span key={i} className="flex-none text-center text-[13px] font-semibold text-gold" style={{ width: W }}>{roundName(i + 1)}</span>
+         ))}
+       </div>
+       <div className="relative" style={{ width, height }}>
+@@ -46,8 +46,8 @@ export default function Bracket({ matches, onMatchClick }) {
+               style={{ strokeDasharray: 1, animation: `rhDraw ${k(700)} var(--ease-out) ${k(300 + m.round * 150)} both` }} />
+           ))}
+           {linked.filter((m) => m.winner).map((m) => (
+-            <path key={`g${m.id}`} d={path(m)} pathLength="1" fill="none" stroke="#e0a43a" strokeWidth="2"
+-              style={{ strokeDasharray: 1, filter: "drop-shadow(0 0 5px rgba(224,164,58,.7))", animation: `rhDraw ${k(800)} var(--ease-out) ${k(500)} both` }} />
++            <path key={`g${m.id}`} d={path(m)} pathLength="1" fill="none" stroke="#ffb547" strokeWidth="2"
++              style={{ strokeDasharray: 1, filter: "drop-shadow(0 0 5px rgba(255,181,71,.7))", animation: `rhDraw ${k(800)} var(--ease-out) ${k(500)} both` }} />
+           ))}
+         </svg>
+         {matches.map((m) => {
+@@ -58,7 +58,7 @@ export default function Bracket({ matches, onMatchClick }) {
+           return (
+             <button key={m.id} type="button" disabled={!playable} onClick={() => onMatchClick(m)}
+               className="absolute flex flex-col justify-center gap-1 rounded-xl border py-1.5 text-left transition-colors enabled:cursor-pointer enabled:hover:bg-[rgba(36,31,94,.95)]"
+-              style={{ left: x, top: y, width: W, height: H, background: "rgba(18,15,46,.9)", borderColor: playable ? "rgba(111,214,246,.6)" : "var(--border-subtle)", opacity: bye ? 0.5 : 1, animation: playable ? `rhPulse 2.4s ease-in-out infinite, ${enter}` : enter }}>
++              style={{ left: x, top: y, width: W, height: H, background: "rgba(22,17,15,.9)", borderColor: playable ? "rgba(255,150,80,.6)" : "var(--border-subtle)", opacity: bye ? 0.5 : 1, animation: playable ? `rhPulse 2.4s ease-in-out infinite, ${enter}` : enter }}>
+               <TeamRow team={m.team_a} score={m.score_a} winner={m.winner && m.winner.id === m.team_a?.id} />
+               <span className="h-px bg-white/10" />
+               <TeamRow team={m.team_b} score={m.score_b} winner={m.winner && m.winner.id === m.team_b?.id} />
+diff --git a/frontend/src/components/Brand.jsx b/frontend/src/components/Brand.jsx
+new file mode 100644
+index 0000000..dd33832
+--- /dev/null
++++ b/frontend/src/components/Brand.jsx
+@@ -0,0 +1,19 @@
++/** Marchio RiftHub: la top lane (L) e la mid lane (diagonale) di una minimappa. */
++export function BrandMark({ size = 28 }) {
++  return (
++    <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" style={{ flex: "none" }}>
++      <rect width="32" height="32" rx="6" fill="#0c0908" stroke="rgba(255,140,70,.35)" />
++      <path d="M8 25 V8 H25" fill="none" stroke="#ff6b1a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
++      <path d="M10.5 22.5 L22.5 10.5" stroke="#ffb547" strokeWidth="3" strokeLinecap="round" />
++      <circle cx="25" cy="25" r="2.2" fill="#5aa9ff" />
++    </svg>
++  );
++}
++
++export function Brand({ size = 28 }) {
++  return (
++    <span style={{ display: "inline-flex", alignItems: "center", gap: 10, font: `900 ${Math.round(size * 0.82)}px/1 var(--font-display)`, color: "var(--bone)", letterSpacing: ".01em" }}>
++      <BrandMark size={size} /> RiftHub
++    </span>
++  );
++}
+diff --git a/frontend/src/components/Navbar.jsx b/frontend/src/components/Navbar.jsx
+index 4fd31ea..8a814b0 100644
+--- a/frontend/src/components/Navbar.jsx
++++ b/frontend/src/components/Navbar.jsx
+@@ -1,11 +1,13 @@
+-import { useLayoutEffect, useRef, useState } from "react";
++import { AnimatePresence, motion } from "motion/react";
++import { useEffect, useState } from "react";
+ import { NavLink, useLocation } from "react-router-dom";
+ import { useAuth } from "../context/AuthContext";
++import { Brand } from "./Brand";
+ import { Icon, IconButton } from "./ds";
+ 
+ export const FANTALOL_URL = "https://fantalol.win";
+ 
+-const LINKS = [
++export const LINKS = [
+   ["/dashboard", "Dashboard", "layout-dashboard"],
+   ["/teams", "Team", "users"],
+   ["/scrims", "Scrim", "swords"],
+@@ -15,61 +17,97 @@ const LINKS = [
+   ["/draft", "Draft", "crosshair"],
+   ["/vod", "VOD", "video"],
+   ["/coaching", "Coaching", "clipboard-list"],
+-  ["/ai", "Assistente AI", "bot"],
++  ["/ai", "Assistente", "bot"],
+ ];
+ 
+-const pill = "relative flex h-9 items-center gap-2 whitespace-nowrap rounded-full px-3.5 text-[11px] font-extrabold uppercase tracking-[.14em] transition-colors";
++const ROLE_LABEL = { ADMIN: "Admin", MANAGER: "Manager", COACH: "Coach", PLAYER: "Player", SCOUT: "Scout" };
+ 
+ export default function Navbar() {
+   const { user, logout } = useAuth();
+   const { pathname } = useLocation();
+-  const els = useRef({});
+-  const [ind, setInd] = useState({ l: 0, w: 0, o: 0 });
++  const [open, setOpen] = useState(false);
+   const active = LINKS.find(([to]) => pathname === to || pathname.startsWith(to + "/"))?.[0];
+ 
+-  // Slide the glowing pill under the active link.
+-  useLayoutEffect(() => {
+-    const measure = () => {
+-      const el = els.current[active];
+-      setInd(el ? { l: el.offsetLeft, w: el.offsetWidth, o: 1 } : (i) => ({ ...i, o: 0 }));
+-    };
+-    measure();
+-    window.addEventListener("resize", measure);
+-    return () => window.removeEventListener("resize", measure);
+-  }, [active]);
++  useEffect(() => setOpen(false), [pathname]);
++  useEffect(() => {
++    if (!open) return undefined;
++    const onKey = (e) => e.key === "Escape" && setOpen(false);
++    window.addEventListener("keydown", onKey);
++    return () => window.removeEventListener("keydown", onKey);
++  }, [open]);
+ 
+   return (
+-    <nav className="sticky top-0 z-40 border-b border-white/10 backdrop-blur-xl"
+-      style={{ background: "rgba(11,9,32,.72)", animation: "rhDown calc(var(--rh-k) * 500ms) var(--ease-out) both" }}>
+-      <div className="mx-auto flex max-w-[1280px] items-center gap-4 px-5 py-2">
+-        <NavLink to="/" className="flex-none text-sm font-black tracking-[.14em] !text-white">RIFTHUB</NavLink>
+-        <div className="rh-nav relative min-w-0 flex-1 overflow-x-auto">
+-          <div className="relative flex w-max gap-0.5 py-1">
+-            <span aria-hidden="true" className="pointer-events-none absolute top-1 h-9 rounded-full"
+-              style={{ left: ind.l, width: ind.w, opacity: ind.o, background: "rgba(61,191,235,.12)", border: "1px solid rgba(111,214,246,.4)", boxShadow: "0 0 18px rgba(61,191,235,.25)", transition: "left calc(var(--rh-k) * 450ms) var(--ease-out), width calc(var(--rh-k) * 450ms) var(--ease-out), opacity 200ms" }} />
+-            {LINKS.map(([to, text, icon]) => {
++    <>
++      <nav className="sticky top-0 z-40" style={{ background: "linear-gradient(180deg, rgba(3,2,2,.92), rgba(3,2,2,.72))", backdropFilter: "blur(14px)", borderBottom: "1px solid var(--border-subtle)" }}>
++        <div className="mx-auto flex h-16 max-w-[1320px] items-center gap-6 px-5">
++          <NavLink to="/" aria-label="RiftHub, torna alla home" className="flex-none !text-[color:var(--bone)]"><Brand size={28} /></NavLink>
++
++          <div className="rh-nav hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto xl:flex">
++            {LINKS.map(([to, text]) => {
+               const on = to === active;
+               return (
+-                <NavLink key={to} to={to} ref={(el) => { els.current[to] = el; }}
+-                  className={`${pill} ${on ? "!text-white" : "!text-slate-200/80 hover:bg-white/5 hover:!text-white"}`}
+-                  style={{ textShadow: on ? "var(--text-glow)" : "none" }}>
+-                  <Icon name={icon} size={16} color={on ? "var(--cyan-400)" : "currentColor"} /> {text}
++                <NavLink key={to} to={to} className="relative flex h-16 items-center px-3 transition-colors"
++                  style={{ font: "700 18px/1 var(--font-display)", letterSpacing: ".02em", color: on ? "var(--bone)" : "var(--smoke)" }}
++                  onMouseEnter={(e) => { if (!on) e.currentTarget.style.color = "var(--bone)"; }}
++                  onMouseLeave={(e) => { if (!on) e.currentTarget.style.color = "var(--smoke)"; }}>
++                  {text}
++                  {on && (
++                    <motion.span layoutId="nav-active" className="absolute bottom-0 left-2 right-2 h-[3px]"
++                      style={{ background: "var(--forge)", boxShadow: "0 -4px 18px rgba(255,107,26,.8)", borderRadius: "3px 3px 0 0" }}
++                      transition={{ type: "spring", stiffness: 420, damping: 36 }} />
++                  )}
+                 </NavLink>
+               );
+             })}
+-            <a href={FANTALOL_URL} target="_blank" rel="noopener noreferrer" className={`${pill} !text-magenta-light hover:bg-white/5`}>
+-              FantaLol <Icon name="external-link" size={14} />
++            <a href={FANTALOL_URL} target="_blank" rel="noopener noreferrer" className="flex h-16 items-center gap-1.5 px-3"
++              style={{ font: "700 18px/1 var(--font-display)", color: "var(--molten)" }}>
++              FantaLol <Icon name="arrow-up-right" size={15} />
+             </a>
+           </div>
++
++          <div className="ml-auto flex flex-none items-center gap-3">
++            <div className="hidden items-center gap-2.5 sm:flex">
++              <span className="grid h-8 w-8 place-items-center rounded-[6px]" style={{ background: "var(--forge-dim)", color: "var(--molten)", font: "800 15px var(--font-display)" }}>
++                {(user?.display_name || user?.email || "?")[0].toUpperCase()}
++              </span>
++              <span className="flex flex-col leading-tight">
++                <span style={{ font: "600 14px var(--font-body)", color: "var(--bone)" }}>{user?.display_name || user?.email}</span>
++                <span style={{ font: "500 12px var(--font-body)", color: "var(--smoke)" }}>{ROLE_LABEL[user?.role] || user?.role}</span>
++              </span>
++            </div>
++            <IconButton icon="log-out" size={36} variant="ghost" label="Esci" onClick={logout} />
++            <IconButton icon={open ? "x" : "menu"} size={38} label={open ? "Chiudi menu" : "Apri menu"} onClick={() => setOpen((o) => !o)} className="xl:!hidden" />
++          </div>
+         </div>
+-        <div className="flex flex-none items-center gap-2.5">
+-          <span className="h-8 w-8 rounded-full border border-hex" style={{ background: "var(--grad-tint-cyan)", boxShadow: "0 0 12px rgba(61,191,235,.35)" }} />
+-          <span className="hidden whitespace-nowrap text-[11px] font-extrabold uppercase tracking-[.14em] text-white sm:inline">
+-            {user?.display_name || user?.email} <span className="text-hex">· {user?.role}</span>
+-          </span>
+-          <IconButton icon="log-out" size={36} variant="ghost" label="Esci" onClick={logout} />
+-        </div>
+-      </div>
+-    </nav>
++      </nav>
++
++      {/* menu a tutto schermo per schermi stretti */}
++      <AnimatePresence>
++        {open && (
++          <motion.div key="menu" className="fixed inset-0 z-30 overflow-y-auto pt-20 xl:hidden"
++            initial={{ clipPath: "polygon(0 0, 0 0, 0 0)" }} animate={{ clipPath: "polygon(0 0, 250% 0, 0 250%)" }}
++            exit={{ clipPath: "polygon(0 0, 0 0, 0 0)" }} transition={{ duration: 0.55, ease: [0.76, 0, 0.24, 1] }}
++            style={{ background: "rgba(3,2,2,.97)" }}>
++            <ul className="mx-auto flex max-w-[640px] flex-col px-6 pb-10">
++              {[...LINKS, [FANTALOL_URL, "FantaLol", "gamepad-2"]].map(([to, text, icon], i) => {
++                const ext = to.startsWith("http");
++                const on = to === active;
++                const inner = (
++                  <span className="flex items-center gap-4 border-b py-3.5" style={{ borderColor: "var(--border-subtle)" }}>
++                    <Icon name={icon} size={20} color={on ? "var(--forge)" : "var(--smoke)"} />
++                    <span style={{ font: "800 clamp(28px,7vw,40px)/1 var(--font-display)", color: on ? "var(--forge)" : "var(--bone)" }}>{text}</span>
++                  </span>
++                );
++                return (
++                  <motion.li key={to} initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 + i * 0.035, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
++                    {ext ? <a href={to} target="_blank" rel="noopener noreferrer">{inner}</a> : <NavLink to={to}>{inner}</NavLink>}
++                  </motion.li>
++                );
++              })}
++            </ul>
++          </motion.div>
++        )}
++      </AnimatePresence>
++    </>
+   );
+ }
+diff --git a/frontend/src/components/Radar.jsx b/frontend/src/components/Radar.jsx
+index fd2f321..fc41fd1 100644
+--- a/frontend/src/components/Radar.jsx
++++ b/frontend/src/components/Radar.jsx
+@@ -9,8 +9,8 @@ export function MiniRadar({ data, height = 170 }) {
+   return (
+     <svg viewBox="-6 0 152 146" style={{ width: "100%", height, overflow: "visible" }} role="img" aria-label="Statistiche">
+       {[1, 0.66, 0.33].map((f) => <polygon key={f} points={poly(data.map(() => 100 * f))} fill="none" stroke="rgba(255,255,255,.1)" />)}
+-      <polygon points={poly(data.map((d) => d.value))} fill="rgba(61,191,235,.25)" stroke="#6fd6f6" strokeWidth="1.5"
+-        style={{ filter: "drop-shadow(0 0 6px rgba(61,191,235,.6))", transition: "all 300ms" }} />
++      <polygon points={poly(data.map((d) => d.value))} fill="rgba(255,107,26,.25)" stroke="#ff9a52" strokeWidth="1.5"
++        style={{ filter: "drop-shadow(0 0 6px rgba(255,107,26,.6))", transition: "all 300ms" }} />
+       {data.map((d, i) => {
+         const [x, y] = at(i, 64);
+         return <text key={d.metric} x={x} y={y + 2} textAnchor="middle" fontSize="7" fill="#a59fba" fontFamily="Urbanist" fontWeight="700">{d.metric}</text>;
+@@ -23,12 +23,12 @@ export function CompareRadar({ metrics, nameA, nameB }) {
+   return (
+     <ResponsiveContainer width="100%" height={340}>
+       <RadarChart data={metrics} outerRadius="72%">
+-        <PolarGrid stroke="#33276f" />
++        <PolarGrid stroke="#3a2e27" />
+         <PolarAngleAxis dataKey="metric" tick={{ fill: "#c9c2d6", fontSize: 11 }} />
+-        <Radar name={nameA} dataKey="a" stroke="#3dbfeb" fill="#3dbfeb" fillOpacity={0.3} />
+-        <Radar name={nameB} dataKey="b" stroke="#e0a43a" fill="#e0a43a" fillOpacity={0.3} />
++        <Radar name={nameA} dataKey="a" stroke="#ff6b1a" fill="#ff6b1a" fillOpacity={0.3} />
++        <Radar name={nameB} dataKey="b" stroke="#ffb547" fill="#ffb547" fillOpacity={0.3} />
+         <Legend />
+-        <Tooltip contentStyle={{ background: "#120f2e", border: "1px solid #33276f" }} />
++        <Tooltip contentStyle={{ background: "#16110f", border: "1px solid #3a2e27" }} />
+       </RadarChart>
+     </ResponsiveContainer>
+   );
+diff --git a/frontend/src/components/RiftBackground.jsx b/frontend/src/components/RiftBackground.jsx
+new file mode 100644
+index 0000000..31c61c7
+--- /dev/null
++++ b/frontend/src/components/RiftBackground.jsx
+@@ -0,0 +1,134 @@
++import { useEffect, useRef } from "react";
++
++/**
++ * Sfondo animato globale (canvas, fixed, dietro a tutto).
++ * Livelli: 1) strati topografici che ondeggiano lenti, 2) due nuclei di calore che derivano,
++ * 3) braci che salgono e si allontanano dal cursore, 4) alone arancio che segue il puntatore.
++ * - intensity="full" per la landing, "calm" per le pagine dell'app (meno particelle, più scuro).
++ * - Con prefers-reduced-motion disegna un solo frame statico. Si mette in pausa a tab nascosta.
++ */
++export default function RiftBackground({ intensity = "calm" }) {
++  const ref = useRef(null);
++
++  useEffect(() => {
++    const canvas = ref.current;
++    const ctx = canvas?.getContext?.("2d");
++    if (!ctx) return undefined; // jsdom / browser senza canvas
++
++    const full = intensity === "full";
++    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
++    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
++    let w = 0, h = 0, raf = 0, t = 0;
++    const mouse = { x: -9999, y: -9999, sx: -9999, sy: -9999 };
++
++    const resize = () => {
++      w = window.innerWidth; h = window.innerHeight;
++      canvas.width = w * dpr; canvas.height = h * dpr;
++      canvas.style.width = w + "px"; canvas.style.height = h + "px";
++      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
++    };
++    resize();
++
++    const N = full ? 90 : 46;
++    const spawn = (anywhere) => ({
++      x: Math.random() * w,
++      y: anywhere ? Math.random() * h : h + 10 + Math.random() * 40,
++      r: 0.6 + Math.random() * (full ? 2.2 : 1.6),
++      vy: 0.25 + Math.random() * (full ? 0.9 : 0.55),
++      sway: Math.random() * Math.PI * 2,
++      hot: Math.random(),
++      life: 0.6 + Math.random() * 0.4,
++    });
++    const embers = Array.from({ length: N }, () => spawn(true));
++
++    const STRATA = full ? 16 : 11;
++    const drawStrata = () => {
++      ctx.lineWidth = 1;
++      for (let i = 0; i < STRATA; i++) {
++        const base = (h / (STRATA - 1)) * i;
++        const a = 0.035 + (i % 4 === 0 ? 0.03 : 0);
++        ctx.strokeStyle = `rgba(255,140,70,${full ? a : a * 0.7})`;
++        ctx.beginPath();
++        for (let x = -20; x <= w + 20; x += 18) {
++          const y = base
++            + Math.sin(x * 0.0042 + t * 0.00018 + i * 0.7) * 26
++            + Math.sin(x * 0.011 - t * 0.00011 + i * 1.9) * 9
++            + (x / w) * -60; // leggera pendenza: richiama la diagonale della mid lane
++          x < 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
++        }
++        ctx.stroke();
++      }
++    };
++
++    const blob = (x, y, r, alpha) => {
++      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
++      g.addColorStop(0, `rgba(255,107,26,${alpha})`);
++      g.addColorStop(0.45, `rgba(194,65,12,${alpha * 0.35})`);
++      g.addColorStop(1, "rgba(0,0,0,0)");
++      ctx.fillStyle = g;
++      ctx.fillRect(x - r, y - r, r * 2, r * 2);
++    };
++
++    const frame = () => {
++      t += 16;
++      ctx.clearRect(0, 0, w, h);
++
++      // nuclei di calore
++      const k = full ? 1 : 0.6;
++      blob(w * (0.82 + Math.sin(t * 0.00009) * 0.05), h * (0.12 + Math.cos(t * 0.00007) * 0.05), Math.max(w, h) * 0.55, 0.16 * k);
++      blob(w * (0.1 + Math.cos(t * 0.00006) * 0.04), h * (0.95 + Math.sin(t * 0.00008) * 0.04), Math.max(w, h) * 0.45, 0.09 * k);
++
++      drawStrata();
++
++      // alone del cursore (smussato)
++      mouse.sx += (mouse.x - mouse.sx) * 0.08;
++      mouse.sy += (mouse.y - mouse.sy) * 0.08;
++      if (mouse.sx > -1000) blob(mouse.sx, mouse.sy, full ? 260 : 200, full ? 0.1 : 0.06);
++
++      // braci
++      ctx.globalCompositeOperation = "lighter";
++      for (let i = 0; i < embers.length; i++) {
++        const e = embers[i];
++        e.y -= e.vy;
++        e.sway += 0.012;
++        e.x += Math.sin(e.sway) * 0.35;
++        const dx = e.x - mouse.sx, dy = e.y - mouse.sy, d2 = dx * dx + dy * dy;
++        if (d2 < 140 * 140) { const f = (1 - Math.sqrt(d2) / 140) * 1.6; e.x += (dx / 140) * f; e.y += (dy / 140) * f; }
++        const fade = Math.min(1, e.y / (h * 0.85)) * e.life;
++        const flick = 0.65 + Math.sin(t * 0.01 + i) * 0.35;
++        const a = Math.max(0, fade * flick);
++        const col = e.hot > 0.7 ? "255,200,110" : "255,120,40";
++        ctx.fillStyle = `rgba(${col},${a})`;
++        ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2); ctx.fill();
++        ctx.fillStyle = `rgba(255,107,26,${a * 0.08})`;
++        ctx.beginPath(); ctx.arc(e.x, e.y, e.r * 3, 0, Math.PI * 2); ctx.fill();
++        if (e.y < -10) embers[i] = spawn(false);
++      }
++      ctx.globalCompositeOperation = "source-over";
++
++      if (!reduce) raf = requestAnimationFrame(frame);
++    };
++
++    const onMove = (e) => { mouse.x = e.clientX; mouse.y = e.clientY; if (mouse.sx < -1000) { mouse.sx = e.clientX; mouse.sy = e.clientY; } };
++    const onVis = () => { cancelAnimationFrame(raf); if (!document.hidden && !reduce) raf = requestAnimationFrame(frame); };
++    window.addEventListener("resize", resize);
++    window.addEventListener("pointermove", onMove, { passive: true });
++    document.addEventListener("visibilitychange", onVis);
++    frame();
++    return () => {
++      cancelAnimationFrame(raf);
++      window.removeEventListener("resize", resize);
++      window.removeEventListener("pointermove", onMove);
++      document.removeEventListener("visibilitychange", onVis);
++    };
++  }, [intensity]);
++
++  return (
++    <div aria-hidden="true" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
++      <canvas ref={ref} style={{ position: "absolute", inset: 0 }} />
++      {/* grana + vignetta: tolgono l'effetto "digitale piatto" */}
++      <div style={{ position: "absolute", inset: 0, background: "radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(0,0,0,.75) 100%)" }} />
++      <div style={{ position: "absolute", inset: 0, opacity: 0.06, mixBlendMode: "overlay", backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
++    </div>
++  );
++}
+diff --git a/frontend/src/components/RiftMap.jsx b/frontend/src/components/RiftMap.jsx
+index e6b9abf..6197cc1 100644
+--- a/frontend/src/components/RiftMap.jsx
++++ b/frontend/src/components/RiftMap.jsx
+@@ -1,33 +1,282 @@
+-/** Simplified Summoner's Rift drawn in code (no copyrighted assets). viewBox 0-100. */
+-export default function RiftMap() {
+-  const camps = [[22, 58], [27, 70], [42, 78], [52, 88], [78, 42], [73, 30], [58, 22], [48, 12], [30, 45], [70, 55]];
+-  const towers = [
+-    [8, 60], [8, 35], [40, 92], [65, 92], [26, 74], [35, 65], // blue
+-    [92, 40], [92, 65], [60, 8], [35, 8], [74, 26], [65, 35], // red
+-  ];
++/**
++ * Summoner's Rift stilizzata, disegnata interamente in codice (nessun asset Riot).
++ * viewBox 0..100. Base blu in basso a sinistra, base rossa in alto a destra, fiume sulla diagonale
++ * alto-sinistra → basso-destra, Baron a nord del fiume, Drago a sud. Il lato rosso è il lato blu
++ * ruotato di 180° attorno al centro (la Rift è quasi simmetrica per rotazione).
++ *
++ * Export:
++ *  - default RiftMap({ animated })          → <g> da inserire in un <svg viewBox="0 0 100 100">
++ *  - RiftPositions({ highlight, onRole })   → le 10 posizioni dei giocatori (come lo screenshot di riferimento)
++ *  - LiveRift({ highlight, onRole })        → <svg> autonomo con mappa + posizioni (landing page)
++ */
++
++export const RIFT = {
++  void: "#030202",
++  ground: "#14100c",
++  wall: "#060403",
++  wallEdge: "rgba(255,150,80,.16)",
++  lane: "#3b2b1f",
++  laneHi: "#5a412c",
++  river: "#0f2433",
++  riverHi: "#1b3d55",
++  brush: "#1f2611",
++  blue: "#5aa9ff",
++  red: "#ff6b1a",
++  camp: "#ffb547",
++};
++
++export const SIDE = { BLUE: RIFT.blue, RED: RIFT.red };
++
++/** Catmull-Rom chiusa → path SVG morbido. */
++function blob(pts) {
++  const n = pts.length;
++  let d = `M${pts[0][0]},${pts[0][1]}`;
++  for (let i = 0; i < n; i++) {
++    const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
++    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
++    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
++    d += ` C${c1[0].toFixed(2)},${c1[1].toFixed(2)} ${c2[0].toFixed(2)},${c2[1].toFixed(2)} ${p2[0]},${p2[1]}`;
++  }
++  return d + "Z";
++}
++
++/** Il fiume: banchi calcolati lungo la diagonale y = x, con anse e allargamento al centro. */
++function riverPath() {
++  const ne = [], sw = [];
++  for (let s = 13; s <= 87; s += 2.5) {
++    const center = Math.exp(-((s - 50) ** 2) / 90) * 2.2;
++    const hw = 3.4 + center + Math.sin(s * 0.45) * 0.7;
++    const wob = Math.sin(s * 0.21) * 0.35;
++    ne.push([s + hw * 0.707 + wob, s - hw * 0.707 + wob]);
++    sw.push([s - hw * 0.707 + wob, s + hw * 0.707 + wob]);
++  }
++  return blob([...ne, ...sw.reverse()].map(([x, y]) => [+x.toFixed(2), +y.toFixed(2)]));
++}
++const RIVER = riverPath();
++
++export const LANES = {
++  top: "M12,86 L11,66 L11,24 Q11,11 24,11 L66,11 L88,12",
++  mid: "M14,86 L86,14",
++  bot: "M14,89 L34,89 L76,89 Q89,89 89,76 L89,34 L86,14",
++};
++
++// Muri della giungla del lato BLU (il rosso è la rotazione di 180°).
++const WALLS_BLUE = [
++  // top-side blu (tra top lane e mid)
++  [[15.5, 30], [20.5, 29.5], [22, 35.5], [18.5, 41], [15.5, 39.5]],
++  [[23.5, 39.5], [29.5, 41], [30.5, 47.5], [26, 50.5], [22, 46.5]],
++  [[15.5, 48.5], [19.5, 47.5], [20.5, 55], [17, 60], [15.5, 57]],
++  [[27, 56.5], [33.5, 53], [36, 56], [32, 60], [27, 62]],
++  [[32, 45.5], [37, 44.5], [40, 49.5], [36.5, 53], [33, 51.5]],
++  [[16, 64], [22, 64.5], [21, 68.5], [16.5, 68.5]],
++  // bot-side blu (tra mid e bot lane)
++  [[35, 74], [41, 71], [44, 75], [40, 80], [35, 79]],
++  [[46, 82.5], [52, 81], [56, 83.5], [50, 85.5], [45, 85.5]],
++  [[47, 66], [53, 64], [57, 69], [53, 74], [48, 72]],
++  [[61, 79], [67, 77.5], [71, 80], [66, 84.5], [60, 83]],
++  [[56, 75.5], [59, 74.5], [60, 78], [57, 79]],
++  // lungo il fiume
++  [[21, 29], [25, 31.5], [24, 35], [20.5, 33]],
++  [[69, 75], [73, 77], [71, 79], [68, 77.5]],
++];
++const BRUSH_BLUE = [
++  [[13.5, 43], [15, 43], [15, 47], [13.5, 47]],
++  [[27.5, 36], [30, 35], [31, 37.5], [28.5, 38.5]],
++  [[60, 66], [63, 65.5], [63.5, 67.5], [60.5, 68]],
++  [[37.5, 59.5], [40, 58.5], [41, 61], [38.5, 62]],
++];
++const CAMPS_BLUE = [[18.5, 44.5], [25, 53.5], [24.5, 63], [44.5, 78], [54.5, 77.5], [60.5, 86.5]];
++const TOWERS_BLUE = [
++  [11, 64], [11, 46], [12.5, 27],
++  [27, 73], [33, 67], [40, 60],
++  [36, 89], [54, 89], [73, 89],
++  [14.5, 83.5], [16.5, 85.5],
++];
++
++const ROT = "rotate(180 50 50)";
++
++function SideBase({ team }) {
++  const c = SIDE[team];
++  return (
++    <g transform={team === "RED" ? ROT : undefined}>
++      <path d="M3,68 L19,68 Q22,68 24,70 L32,78 Q34,80 34,83 L34,97 L3,97 Z" fill="#0d0b0a" />
++      <path d="M3,68 L19,68 Q22,68 24,70 L32,78 Q34,80 34,83 L34,97" fill="none" stroke={c} strokeOpacity=".35" strokeWidth=".35" />
++      <path d="M5,70 L5,95 L32,95" fill="none" stroke={c} strokeOpacity=".05" strokeWidth="3" />
++    </g>
++  );
++}
++
++function Side({ team }) {
++  const c = SIDE[team];
++  return (
++    <g transform={team === "RED" ? ROT : undefined}>
++      <g transform="translate(11.5 88.5)">
++        <circle r="5.5" fill={c} opacity=".08" />
++        <path d="M0,-3.2 L3.2,0 L0,3.2 L-3.2,0 Z" fill="#0d0b0a" stroke={c} strokeWidth=".6" />
++        <path d="M0,-1.6 L1.6,0 L0,1.6 L-1.6,0 Z" fill={c} />
++      </g>
++      {[[11, 75], [23.5, 77], [25.5, 89]].map(([x, y]) => (
++        <circle key={`${x}-${y}`} cx={x} cy={y} r="1.3" fill="#0d0b0a" stroke={c} strokeWidth=".45" />
++      ))}
++      {WALLS_BLUE.map((p, i) => <path key={i} d={blob(p)} fill={RIFT.wall} stroke={RIFT.wallEdge} strokeWidth=".35" />)}
++      {BRUSH_BLUE.map((p, i) => <path key={i} d={blob(p)} fill={RIFT.brush} />)}
++      {CAMPS_BLUE.map(([x, y]) => (
++        <g key={`${x}-${y}`}>
++          <circle cx={x} cy={y} r="1.6" fill={RIFT.camp} opacity=".12" />
++          <circle cx={x} cy={y} r=".6" fill={RIFT.camp} opacity=".85" />
++        </g>
++      ))}
++      {TOWERS_BLUE.map(([x, y]) => (
++        <g key={`${x}-${y}`} transform={`translate(${x} ${y})`}>
++          <rect x="-.9" y="-.9" width="1.8" height="1.8" transform="rotate(45)" fill="#0d0b0a" stroke={c} strokeWidth=".4" />
++          <circle r=".35" fill={c} />
++        </g>
++      ))}
++    </g>
++  );
++}
++
++/** Ondate di minion che camminano lungo le corsie verso il centro. */
++function MinionWaves() {
++  return (
++    <g>
++      {Object.values(LANES).flatMap((d, li) =>
++        [0, 1].map((side) =>
++          [0, 0.6, 1.2].map((off) => (
++            <circle key={`${li}-${side}-${off}`} r=".45" fill={side ? RIFT.red : RIFT.blue} opacity=".9">
++              <animateMotion dur="12s" repeatCount="indefinite" begin={`${-(li * 2.7 + off)}s`} path={d}
++                keyPoints={side ? "1;0.5" : "0;0.5"} keyTimes="0;1" calcMode="linear" />
++            </circle>
++          )),
++        ),
++      )}
++    </g>
++  );
++}
++
++export default function RiftMap({ animated = false }) {
+   return (
+     <g>
+-      <rect width="100" height="100" fill="#10261c" />
+-      {/* jungle texture */}
+-      <rect width="100" height="100" fill="url(#rift-grid)" opacity="0.4" />
+-      {/* river: top-left to bottom-right */}
+-      <path d="M0,0 L14,4 C35,22 45,40 50,50 C55,60 65,78 96,86 L100,100 L86,96 C65,78 55,60 50,50 C45,40 35,22 4,14 Z" fill="#1d4f6e" opacity="0.8" />
+-      {/* lanes */}
+-      <g stroke="#6b5d3f" strokeWidth="4" fill="none" strokeLinecap="round" opacity="0.85">
+-        <path d="M8,92 L8,8 L92,8" />
+-        <path d="M8,92 L92,92 L92,8" />
+-        <path d="M11,89 L89,11" />
++      <defs>
++        <pattern id="rift-grain" width="3" height="3" patternUnits="userSpaceOnUse">
++          <circle cx=".7" cy=".7" r=".18" fill="#2a1f17" />
++          <circle cx="2.2" cy="2" r=".12" fill="#22190f" />
++        </pattern>
++        <linearGradient id="rift-river" x1="0" y1="0" x2="1" y2="1">
++          <stop offset="0" stopColor={RIFT.riverHi} />
++          <stop offset=".5" stopColor={RIFT.river} />
++          <stop offset="1" stopColor={RIFT.riverHi} />
++        </linearGradient>
++        <radialGradient id="rift-heat" cx=".5" cy=".5" r=".5">
++          <stop offset="0" stopColor="#ff6b1a" stopOpacity=".18" />
++          <stop offset="1" stopColor="#ff6b1a" stopOpacity="0" />
++        </radialGradient>
++      </defs>
++
++      <rect width="100" height="100" fill={RIFT.void} />
++      <rect x="2.5" y="2.5" width="95" height="95" rx="5" fill={RIFT.ground} />
++      <rect x="2.5" y="2.5" width="95" height="95" rx="5" fill="url(#rift-grain)" />
++      <rect x="2.5" y="2.5" width="95" height="95" rx="5" fill="none" stroke="rgba(255,140,70,.18)" strokeWidth=".4" />
++
++      <path d={RIVER} fill="url(#rift-river)" />
++      <path d={RIVER} fill="none" stroke="#2c5b7a" strokeOpacity=".5" strokeWidth=".35" />
++      {animated && (
++        <path d="M16,16 L84,84" stroke="#5aa9ff" strokeOpacity=".25" strokeWidth=".35" strokeDasharray="1.5 3"
++          style={{ animation: "rhFlow 5s linear infinite" }} />
++      )}
++
++      {/* Baron (nord del fiume) e Drago (sud) */}
++      <circle cx="36.5" cy="30.5" r="4.6" fill="#0a1820" stroke="#9b7bff" strokeOpacity=".55" strokeWidth=".4" />
++      <circle cx="36.5" cy="30.5" r="2.2" fill="#9b7bff" opacity=".25" />
++      <circle cx="63.5" cy="69.5" r="4.6" fill="#0a1820" stroke={RIFT.red} strokeOpacity=".6" strokeWidth=".4" />
++      <circle cx="63.5" cy="69.5" r="2.2" fill={RIFT.red} opacity=".28" />
++      <circle cx="27" cy="26" r=".7" fill="#7fd1c4" opacity=".8" />
++      <circle cx="73" cy="74" r=".7" fill="#7fd1c4" opacity=".8" />
++
++      <SideBase team="BLUE" />
++      <SideBase team="RED" />
++      <g fill="none" strokeLinecap="round" strokeLinejoin="round">
++        {Object.values(LANES).map((d) => <path key={d} d={d} stroke={RIFT.lane} strokeWidth="4.6" />)}
++        {Object.values(LANES).map((d) => <path key={"h" + d} d={d} stroke={RIFT.laneHi} strokeWidth="2" opacity=".5" />)}
+       </g>
+-      {/* objectives */}
+-      <circle cx="31" cy="30" r="4" fill="#4c1d95" stroke="#a78bfa" strokeWidth="0.6" />
+-      <text x="31" y="31.2" fontSize="2.8" textAnchor="middle" fill="#ddd6fe">Baron</text>
+-      <circle cx="69" cy="70" r="4" fill="#7c2d12" stroke="#fb923c" strokeWidth="0.6" />
+-      <text x="69" y="71.2" fontSize="2.8" textAnchor="middle" fill="#fed7aa">Drago</text>
+-      {camps.map(([x, y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.4" fill="#365314" stroke="#84cc16" strokeWidth="0.3" />)}
+-      {towers.map(([x, y], i) => <rect key={i} x={x - 1} y={y - 1} width="2" height="2" fill={i < 6 ? "#38bdf8" : "#f87171"} />)}
+-      {/* bases */}
+-      <path d="M0,100 L0,80 A20,20 0 0 0 20,100 Z" fill="#0c4a6e" stroke="#38bdf8" strokeWidth="0.6" />
+-      <path d="M100,0 L100,20 A20,20 0 0 1 80,0 Z" fill="#7f1d1d" stroke="#f87171" strokeWidth="0.6" />
++
++      <Side team="BLUE" />
++      <Side team="RED" />
++
++      <circle cx="50" cy="50" r="10" fill="url(#rift-heat)" />
++      {animated && <MinionWaves />}
++    </g>
++  );
++}
++
++// --- posizioni dei giocatori (dallo screenshot di riferimento) --------------
++export const ROLES = [
++  { key: "T", name: "Top" },
++  { key: "J", name: "Jungle" },
++  { key: "M", name: "Mid" },
++  { key: "A", name: "ADC" },
++  { key: "S", name: "Support" },
++];
++
++export const POSITIONS = [
++  { team: "BLUE", role: "T", x: 13.6, y: 18.3 },
++  { team: "RED", role: "T", x: 17.2, y: 15.1 },
++  { team: "BLUE", role: "J", x: 23.1, y: 47.1 },
++  { team: "RED", role: "J", x: 77.6, y: 53.7 },
++  { team: "BLUE", role: "M", x: 47.6, y: 53.8 },
++  { team: "RED", role: "M", x: 53.3, y: 48.0 },
++  { team: "BLUE", role: "A", x: 78.1, y: 85.2 },
++  { team: "RED", role: "A", x: 82.6, y: 80.6 },
++  { team: "BLUE", role: "S", x: 81.7, y: 91.9 },
++  { team: "RED", role: "S", x: 88.6, y: 83.4 },
++];
++
++const VISION = [
++  { x: 15.5, y: 17, r: 8 }, { x: 23, y: 47, r: 8 }, { x: 50.5, y: 51, r: 8.5 },
++  { x: 77.5, y: 53.5, r: 7.5 }, { x: 82.5, y: 85, r: 10.5 },
++];
++
++export function RiftPositions({ highlight, animated = true, onRole }) {
++  return (
++    <g>
++      {VISION.map((v, i) => (
++        <circle key={i} cx={v.x} cy={v.y} r={v.r} fill="#5aa9ff" fillOpacity=".09" stroke="#9ccaff" strokeOpacity=".2" strokeWidth=".3"
++          style={animated ? { transformBox: "fill-box", transformOrigin: "center", animation: `rhVision ${4 + i * 0.6}s ease-in-out ${i * -0.8}s infinite` } : undefined} />
++      ))}
++      {POSITIONS.map((p, i) => {
++        const c = SIDE[p.team];
++        const dim = highlight && highlight !== p.role;
++        const on = highlight === p.role;
++        return (
++          <g key={p.team + p.role} transform={`translate(${p.x} ${p.y})`}
++            style={{ opacity: dim ? 0.22 : 1, transition: "opacity 300ms", cursor: onRole ? "pointer" : undefined }}
++            onMouseEnter={onRole ? () => onRole(p.role) : undefined}
++            onMouseLeave={onRole ? () => onRole(null) : undefined}>
++            <g style={animated ? { animation: `rhDrift${i % 3} ${5 + (i % 4)}s ease-in-out ${-i * 0.7}s infinite alternate` } : undefined}>
++              {on && <circle r="2.6" fill="none" stroke={c} strokeWidth=".35" style={{ transformBox: "fill-box", transformOrigin: "center", animation: "rhPing 1.4s ease-out infinite" }} />}
++              <circle r="2.8" fill={c} opacity=".22" />
++              <circle r="2.15" fill={c} stroke="#fff" strokeOpacity={on ? 0.95 : 0.35} strokeWidth=".25" />
++              <text y=".95" textAnchor="middle" fontSize="2.7" fontWeight="800" fill={p.team === "BLUE" ? "#06121f" : "#1a0a02"}
++                style={{ fontFamily: "var(--font-display, sans-serif)", pointerEvents: "none" }}>{p.role}</text>
++            </g>
++          </g>
++        );
++      })}
+     </g>
+   );
+ }
++
++export function LiveRift({ highlight, onRole, className, style, showPositions = true }) {
++  return (
++    <svg viewBox="0 0 100 100" className={className} style={style} role="img"
++      aria-label="Mappa stilizzata di Summoner's Rift con le posizioni dei dieci giocatori">
++      <style>{`
++        @keyframes rhDrift0 { from { transform: translate(-.5px,.3px) } to { transform: translate(.6px,-.4px) } }
++        @keyframes rhDrift1 { from { transform: translate(.4px,.5px) } to { transform: translate(-.5px,-.3px) } }
++        @keyframes rhDrift2 { from { transform: translate(0,-.5px) } to { transform: translate(.3px,.6px) } }
++      `}</style>
++      <RiftMap animated />
++      {showPositions && <RiftPositions highlight={highlight} onRole={onRole} />}
++    </svg>
++  );
++}
+diff --git a/frontend/src/components/SwipeDeck.jsx b/frontend/src/components/SwipeDeck.jsx
+index 807d21d..2690401 100644
+--- a/frontend/src/components/SwipeDeck.jsx
++++ b/frontend/src/components/SwipeDeck.jsx
+@@ -16,17 +16,17 @@ function PlayerCardView({ card, drag }) {
+         style={{ borderColor: "var(--red-500)", color: "var(--red-500)", opacity: Math.max(0, Math.min(1, -drag / 90)) }}>PASS</span>
+       <div className="flex items-center gap-3.5">
+         <span className="grid h-16 w-16 flex-none place-items-center overflow-hidden rounded-full border border-hex text-[26px] font-black"
+-          style={{ background: "var(--grad-tint-cyan)", boxShadow: "0 0 18px rgba(61,191,235,.4)" }}>
++          style={{ background: "var(--grad-tint-cyan)", boxShadow: "0 0 18px rgba(255,107,26,.4)" }}>
+           {card.avatar_url ? <img src={card.avatar_url} alt="" className="h-16 w-16" draggable={false} /> : card.nickname[0]}
+         </span>
+         <div className="flex min-w-0 flex-col gap-0.5">
+-          <h2 className="m-0 truncate text-[26px] font-black uppercase leading-none">{card.nickname}</h2>
++          <h2 className="m-0 truncate font-display text-[34px] font-black leading-none">{card.nickname}</h2>
+           <span className="text-[13px] text-slate-400">{card.real_name || "—"}{card.age ? `, ${card.age} anni` : ""}</span>
+         </div>
+         {card.fit_score !== undefined && (
+           <div className="ml-auto text-right">
+             <div className="rh-mono text-[26px] font-bold leading-none text-hex" style={{ textShadow: "var(--text-glow)" }}>{card.fit_score}</div>
+-            <div className="text-[10px] font-extrabold uppercase tracking-[.14em] text-slate-500">fit</div>
++            <div className="text-[13px] font-semibold text-slate-500">fit</div>
+           </div>
+         )}
+       </div>
+@@ -44,7 +44,7 @@ function PlayerCardView({ card, drag }) {
+ }
+ 
+ const cardClass = "absolute inset-0 flex select-none flex-col gap-3.5 overflow-hidden rounded-[20px] border p-[22px] touch-none";
+-const cardStyle = { borderColor: "rgba(224,164,58,.3)", background: "rgba(18,15,46,.82)", backdropFilter: "var(--blur-glass)", boxShadow: "var(--shadow-card),0 0 40px rgba(84,34,115,.5)" };
++const cardStyle = { borderColor: "rgba(255,181,71,.3)", background: "rgba(22,17,15,.82)", backdropFilter: "var(--blur-glass)", boxShadow: "var(--shadow-card),0 0 40px rgba(92,34,8,.5)" };
+ 
+ /** Tinder-style deck: drag, buttons or ←/→ keys. Calls onSwipe(card, "LIKE"|"PASS") right away; the card flies out on its own. */
+ export default function SwipeDeck({ cards, onSwipe, disabled }) {
+@@ -103,13 +103,13 @@ export default function SwipeDeck({ cards, onSwipe, disabled }) {
+           </div>
+           <div className="flex gap-7">
+             <button type="button" onClick={() => swipe("PASS")} disabled={disabled} aria-label="Scarta"
+-              className="grid h-16 w-16 cursor-pointer place-items-center rounded-full border-2 transition duration-200 hover:-translate-y-0.5 hover:bg-[rgba(255,77,109,.16)] hover:shadow-[0_0_22px_rgba(255,77,109,.45)] active:scale-[.92]"
+-              style={{ borderColor: "var(--red-500)", background: "rgba(255,77,109,.06)", color: "var(--red-500)" }}>
++              className="grid h-16 w-16 cursor-pointer place-items-center rounded-full border-2 transition duration-200 hover:-translate-y-0.5 hover:bg-[rgba(255,75,62,.16)] hover:shadow-[0_0_22px_rgba(255,75,62,.45)] active:scale-[.92]"
++              style={{ borderColor: "var(--red-500)", background: "rgba(255,75,62,.06)", color: "var(--red-500)" }}>
+               <Icon name="x" size={28} />
+             </button>
+             <button type="button" onClick={() => swipe("LIKE")} disabled={disabled} aria-label="Mi piace"
+-              className="grid h-16 w-16 cursor-pointer place-items-center rounded-full border-2 transition duration-200 hover:-translate-y-0.5 hover:bg-[rgba(62,230,168,.16)] hover:shadow-[0_0_22px_rgba(62,230,168,.45)] active:scale-[.92]"
+-              style={{ borderColor: "var(--green-500)", background: "rgba(62,230,168,.06)", color: "var(--green-500)" }}>
++              className="grid h-16 w-16 cursor-pointer place-items-center rounded-full border-2 transition duration-200 hover:-translate-y-0.5 hover:bg-[rgba(111,217,155,.16)] hover:shadow-[0_0_22px_rgba(111,217,155,.45)] active:scale-[.92]"
++              style={{ borderColor: "var(--green-500)", background: "rgba(111,217,155,.06)", color: "var(--green-500)" }}>
+               <Icon name="heart" size={28} />
+             </button>
+           </div>
+diff --git a/frontend/src/components/Transitions.jsx b/frontend/src/components/Transitions.jsx
+new file mode 100644
+index 0000000..168d124
+--- /dev/null
++++ b/frontend/src/components/Transitions.jsx
+@@ -0,0 +1,60 @@
++import { AnimatePresence, motion, useReducedMotion } from "motion/react";
++import { useEffect, useRef, useState } from "react";
++import { useLocation } from "react-router-dom";
++
++const EASE = [0.76, 0, 0.24, 1];
++const EASE_OUT = [0.16, 1, 0.3, 1];
++
++/**
++ * "Mid-lane wipe": a ogni cambio di rotta una lama nera bordata d'arancio attraversa lo schermo
++ * lungo la diagonale della mid lane, dalla base blu (basso-sinistra) alla rossa (alto-destra).
++ * Il contenuto cambia mentre la lama copre il centro dello schermo.
++ */
++export function RouteWipe() {
++  const { pathname } = useLocation();
++  const reduce = useReducedMotion();
++  const first = useRef(true);
++  const [run, setRun] = useState(0);
++
++  useEffect(() => {
++    if (first.current) { first.current = false; return; }
++    if (!reduce) setRun((n) => n + 1);
++  }, [pathname, reduce]);
++
++  return (
++    <AnimatePresence>
++      {run > 0 && (
++        <motion.div key={run} aria-hidden="true"
++          className="pointer-events-none fixed z-[90]"
++          style={{
++            inset: "-60%",
++            background: "linear-gradient(45deg, transparent 30%, rgba(255,181,71,.9) 33.5%, #ff6b1a 34.5%, #030202 36%, #030202 64%, #ff6b1a 65.5%, rgba(255,181,71,.9) 66.5%, transparent 70%)",
++          }}
++          initial={{ x: "-36%", y: "36%" }}
++          animate={{ x: "55%", y: "-55%" }}
++          transition={{ duration: 0.8, ease: [0.45, 0, 0.25, 1] }}
++          onAnimationComplete={() => setRun(0)}
++        />
++      )}
++    </AnimatePresence>
++  );
++}
++
++/** Varianti di pagina: uscita veloce verso l'alto, entrata dal basso con leggera sfocatura. */
++export const pageVariants = {
++  initial: { opacity: 0, y: 28, filter: "blur(6px)" },
++  // transitionEnd rimuove filter/transform: altrimenti i figli position:fixed (modali) verrebbero "intrappolati".
++  enter: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.5, ease: EASE_OUT, delay: 0.3 }, transitionEnd: { filter: "none", transform: "none" } },
++  exit: { opacity: 0, y: -16, filter: "blur(4px)", transition: { duration: 0.22, ease: EASE } },
++};
++
++/** Avvolge un sottoalbero che cambia con la chiave (es. pathname) in una transizione di pagina. */
++export function PageTransition({ id, children }) {
++  return (
++    <AnimatePresence mode="wait" initial={false}>
++      <motion.div key={id} variants={pageVariants} initial="initial" animate="enter" exit="exit">
++        {children}
++      </motion.div>
++    </AnimatePresence>
++  );
++}
+diff --git a/frontend/src/components/ds.jsx b/frontend/src/components/ds.jsx
+index ffa06d3..b21feaf 100644
+--- a/frontend/src/components/ds.jsx
++++ b/frontend/src/components/ds.jsx
+@@ -1,23 +1,23 @@
+-// Gaming Design System components, ported from the Claude Design bundle (GamingDesignSystem_a5ff6c).
++// RiftHub "Forge" design system: componenti base. Stili inline basati sui token di styles/ds.css.
+ import {
+   ArrowUpRight, BookOpen, Bot, Calendar, Check, ChevronLeft, ChevronRight, CircleX, Clapperboard, ClipboardList, Crosshair,
+-  ExternalLink, Gamepad2, GraduationCap, Grid3x3, Hash, Heart, Info, Layers, LayoutDashboard, Lock, LogOut, Mail, Map,
++  ExternalLink, Gamepad2, GraduationCap, Grid3x3, Hash, Heart, Info, Layers, LayoutDashboard, Lock, LogOut, Mail, Map, Menu,
+   MessageCircle, MessageSquareMore, Play, Plus, Search, Sparkles, Swords, Target, Trash2, TriangleAlert, Trophy, User, Users,
+   Video, Wand2, X,
+ } from "lucide-react";
+ import { useEffect, useState } from "react";
++import RiftBackground from "./RiftBackground";
+ 
+ const ICONS = {
+   "arrow-up-right": ArrowUpRight, "book-open": BookOpen, bot: Bot, calendar: Calendar, check: Check, "chevron-left": ChevronLeft,
+   "chevron-right": ChevronRight, "circle-x": CircleX, clapperboard: Clapperboard, "clipboard-list": ClipboardList, crosshair: Crosshair,
+   "external-link": ExternalLink, "gamepad-2": Gamepad2, "graduation-cap": GraduationCap, "grid-3x3": Grid3x3, hash: Hash, heart: Heart,
+-  info: Info, layers: Layers, "layout-dashboard": LayoutDashboard, lock: Lock, "log-out": LogOut, mail: Mail, map: Map,
++  info: Info, layers: Layers, "layout-dashboard": LayoutDashboard, lock: Lock, "log-out": LogOut, mail: Mail, map: Map, menu: Menu,
+   "message-circle": MessageCircle, "message-square-more": MessageSquareMore, play: Play, plus: Plus, search: Search, sparkles: Sparkles,
+   swords: Swords, target: Target, "trash-2": Trash2, "triangle-alert": TriangleAlert, trophy: Trophy, user: User, users: Users,
+   video: Video, "wand-2": Wand2, x: X,
+ };
+ 
+-const label = { fontFamily: "var(--font-display)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "var(--ls-label)" };
+ const ease = "all var(--dur-base) var(--ease-out)";
+ 
+ function useHover() {
+@@ -30,57 +30,47 @@ export function Icon({ name, size = 20, color = "currentColor", style }) {
+   return C ? <C aria-hidden="true" size={size} color={color} strokeWidth={2} style={{ flex: "none", ...style }} /> : null;
+ }
+ 
++// [colore pieno, sfondo tenue, testo]
+ const BADGE = {
+-  cyan: ["var(--cyan-500)", "rgba(61,191,235,.16)", "var(--cyan-200)"],
+-  magenta: ["var(--magenta-500)", "rgba(194,59,212,.18)", "var(--magenta-400)"],
+-  gold: ["var(--gold-500)", "rgba(224,164,58,.18)", "var(--gold-300)"],
+-  success: ["var(--green-500)", "rgba(62,230,168,.15)", "var(--green-500)"],
+-  danger: ["var(--red-500)", "rgba(255,77,109,.16)", "var(--red-500)"],
+-  warning: ["var(--amber-500)", "rgba(242,184,75,.16)", "var(--amber-500)"],
+-  neutral: ["var(--ink-500)", "rgba(255,255,255,.08)", "var(--ink-200)"],
++  forge: ["var(--forge)", "rgba(255,107,26,.14)", "#ffa66b"],
++  cyan: ["var(--forge)", "rgba(255,107,26,.14)", "#ffa66b"],
++  gold: ["var(--molten)", "rgba(255,181,71,.14)", "var(--molten)"],
++  magenta: ["#ff5a36", "rgba(255,90,54,.15)", "#ff9a7c"],
++  ice: ["var(--ice)", "rgba(90,169,255,.14)", "#9ccaff"],
++  success: ["var(--ok)", "rgba(111,217,155,.13)", "var(--ok)"],
++  danger: ["var(--danger)", "rgba(255,75,62,.15)", "#ff8f85"],
++  warning: ["var(--warn)", "rgba(255,194,74,.14)", "var(--warn)"],
++  neutral: ["var(--smoke)", "rgba(255,230,210,.06)", "var(--sand)"],
+ };
+ 
+-export function Badge({ tone = "cyan", dot, children }) {
+-  const [solid, soft, fg] = BADGE[tone] || BADGE.cyan;
++export function Badge({ tone = "forge", dot, children }) {
++  const [solid, soft, fg] = BADGE[tone] || BADGE.forge;
+   return (
+-    <span style={{ ...label, display: "inline-flex", alignItems: "center", gap: 6, height: 22, padding: "0 10px", borderRadius: "var(--radius-pill)", fontSize: 10, background: soft, color: fg, border: "1px solid " + soft, whiteSpace: "nowrap" }}>
++    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 24, padding: "0 9px", borderRadius: "var(--radius-xs)", font: "600 12.5px/1 var(--font-body)", background: soft, color: fg, boxShadow: `inset 2px 0 0 ${solid}`, whiteSpace: "nowrap" }}>
+       {dot && <span style={{ width: 6, height: 6, borderRadius: "50%", background: solid, boxShadow: "0 0 8px " + solid }} />}
+       {children}
+     </span>
+   );
+ }
+ 
+-const SIZES = { sm: { h: 36, px: 18, fs: 11, c: 26, ic: 12 }, md: { h: 48, px: 28, fs: 12, c: 34, ic: 14 }, lg: { h: 60, px: 36, fs: 13, c: 44, ic: 18 } };
++const SIZES = { sm: { h: 38, px: 15, fs: 17, ic: 15 }, md: { h: 46, px: 22, fs: 17, ic: 17 }, lg: { h: 56, px: 28, fs: 20, ic: 19 } };
+ 
+ export function Button({ variant = "primary", size = "md", trailingIcon, disabled, fullWidth, children, style, ...rest }) {
+   const [h, hover] = useHover();
+-  const [p, setP] = useState(false);
+   const s = SIZES[size];
+-  const circle = variant === "primary" && trailingIcon;
+-  const v = variant === "primary"
+-    ? {
+-      background: "var(--grad-cta)", color: "var(--ink-0)", border: "1px solid rgba(255,255,255,.35)",
+-      boxShadow: h ? "0 10px 36px rgba(61,191,235,.65),inset 0 1px 0 rgba(255,255,255,.6)" : "var(--glow-cta)",
+-      textShadow: "0 1px 6px rgba(20,40,110,.45)", filter: h ? "brightness(1.06)" : "none",
+-    }
+-    : { background: h ? "rgba(255,255,255,.08)" : "transparent", color: "var(--ink-0)", border: "1px solid " + (h ? "var(--ink-0)" : "var(--border-strong)") };
++  const primary = variant === "primary";
++  const v = primary
++    ? { background: "var(--grad-cta)", color: "#1a0a02", border: "1px solid rgba(255,190,140,.5)", boxShadow: h ? "0 14px 40px -8px rgba(255,107,26,.85), inset 0 1px 0 rgba(255,230,200,.5)" : "var(--glow-cta)" }
++    : { background: h ? "rgba(255,107,26,.07)" : "transparent", color: h ? "var(--forge)" : "var(--bone)", border: "1px solid " + (h ? "var(--forge)" : "var(--border-strong)") };
+   return (
+-    <button
+-      {...rest} {...hover} disabled={disabled}
+-      onMouseDown={() => setP(true)} onMouseUp={() => setP(false)}
++    <button {...rest} {...hover} disabled={disabled} className="rh-press"
+       style={{
+-        ...label, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 12, height: s.h,
+-        padding: circle ? `0 ${(s.h - s.c) / 2}px 0 ${s.px}px` : `0 ${s.px}px`, width: fullWidth ? "100%" : undefined,
+-        borderRadius: "var(--radius-pill)", fontSize: s.fs, cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.4 : 1,
+-        transform: p && !disabled ? "scale(.97)" : "none", transition: ease, whiteSpace: "nowrap", ...v, ...style,
+-      }}
+-    >
+-      <span style={{ padding: circle ? `0 ${s.px * 0.6}px` : 0 }}>{children}</span>
+-      {trailingIcon && (circle ? (
+-        <span style={{ width: s.c, height: s.c, borderRadius: "50%", background: "var(--ink-0)", display: "grid", placeItems: "center", boxShadow: "0 2px 8px rgba(20,40,110,.35)" }}>
+-          <Icon name={trailingIcon} size={s.ic} color="var(--blue-500)" style={{ marginLeft: trailingIcon === "play" ? 2 : 0 }} />
+-        </span>
+-      ) : <Icon name={trailingIcon} size={s.ic + 2} />)}
++        display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10, height: s.h, padding: `0 ${s.px}px`,
++        width: fullWidth ? "100%" : undefined, borderRadius: "var(--radius-sm)", font: `800 ${s.fs}px/1 var(--font-display)`, letterSpacing: ".02em",
++        cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.4 : 1, transition: ease, whiteSpace: "nowrap", ...v, ...style,
++      }}>
++      {children}
++      {trailingIcon && <Icon name={trailingIcon} size={s.ic} style={{ transform: h ? "translateX(3px)" : "none", transition: ease }} />}
+     </button>
+   );
+ }
+@@ -88,11 +78,11 @@ export function Button({ variant = "primary", size = "md", trailingIcon, disable
+ export function IconButton({ icon, size = 40, variant = "glass", label: aria, style, ...rest }) {
+   const [h, hover] = useHover();
+   const v = variant === "glass"
+-    ? { background: h ? "var(--surface-hover)" : "var(--surface-glass)", border: "1px solid var(--border-subtle)", backdropFilter: "var(--blur-glass)" }
+-    : { background: h ? "var(--surface-raised)" : "transparent", border: "1px solid transparent" };
++    ? { background: h ? "var(--cinder)" : "var(--surface-glass)", border: "1px solid " + (h ? "var(--border-hot)" : "var(--border-subtle)") }
++    : { background: h ? "var(--surface-hover)" : "transparent", border: "1px solid transparent" };
+   return (
+     <button {...rest} {...hover} type="button" aria-label={aria} title={aria}
+-      style={{ width: size, height: size, borderRadius: "50%", display: "inline-grid", placeItems: "center", cursor: "pointer", color: h ? "var(--ink-0)" : "var(--ink-200)", transition: ease, padding: 0, ...v, ...style }}>
++      style={{ width: size, height: size, borderRadius: "var(--radius-sm)", display: "inline-grid", placeItems: "center", cursor: "pointer", color: h ? "var(--forge)" : "var(--sand)", transition: ease, padding: 0, ...v, ...style }}>
+       <Icon name={icon} size={Math.round(size * 0.45)} />
+     </button>
+   );
+@@ -100,71 +90,28 @@ export function IconButton({ icon, size = 40, variant = "glass", label: aria, st
+ 
+ export function Input({ label: text, icon, error, ...rest }) {
+   const [f, setF] = useState(false);
+-  const bc = error ? "var(--red-500)" : f ? "var(--cyan-400)" : "var(--border-subtle)";
++  const bc = error ? "var(--danger)" : f ? "var(--forge)" : "var(--border-subtle)";
+   return (
+-    <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+-      <span style={{ ...label, fontSize: 10, color: "var(--text-muted)" }}>{text}</span>
+-      <span style={{ display: "flex", alignItems: "center", gap: 10, height: 48, padding: "0 18px", borderRadius: "var(--radius-md)", background: "var(--surface-input)", border: "1px solid " + bc, boxShadow: f && !error ? "0 0 0 3px rgba(61,191,235,.18)" : "none", transition: ease }}>
+-        {icon && <Icon name={icon} size={18} color="var(--ink-300)" />}
++    <label style={{ display: "flex", flexDirection: "column", gap: 7 }}>
++      <span style={{ font: "600 13px var(--font-body)", color: "var(--smoke)" }}>{text}</span>
++      <span style={{ display: "flex", alignItems: "center", gap: 10, height: 46, padding: "0 14px", borderRadius: "var(--radius-md)", background: "var(--surface-input)", border: "1px solid " + bc, boxShadow: f && !error ? "0 0 0 3px rgba(255,107,26,.16)" : "none", transition: ease }}>
++        {icon && <Icon name={icon} size={17} color={f ? "var(--forge)" : "var(--smoke)"} />}
+         <input {...rest} onFocus={() => setF(true)} onBlur={() => setF(false)}
+-          style={{ flex: 1, minWidth: 0, background: "transparent", border: "none", outline: "none", fontFamily: "var(--font-body)", fontWeight: 500, fontSize: 15, color: "var(--text-primary)" }} />
++          style={{ flex: 1, minWidth: 0, background: "transparent", border: "none", outline: "none", font: "500 15px var(--font-body)", color: "var(--text-primary)" }} />
+       </span>
+-      {error && <span role="alert" style={{ fontSize: 12, fontWeight: 500, color: "var(--red-500)" }}>{error}</span>}
++      {error && <span role="alert" style={{ font: "500 13px var(--font-body)", color: "#ff8f85" }}>{error}</span>}
+     </label>
+   );
+ }
+ 
+-function RailItem({ item, onSelect }) {
+-  const [h, hover] = useHover();
+-  return (
+-    <button {...hover} type="button" title={item.label} aria-label={item.label} onClick={() => onSelect(item)}
+-      style={{ position: "relative", width: 44, height: 44, display: "grid", placeItems: "center", background: "transparent", border: "none", cursor: "pointer", padding: 0, color: item.active ? "var(--cyan-400)" : h ? "var(--ink-0)" : "var(--ink-300)", filter: item.active ? "drop-shadow(0 0 6px rgba(61,191,235,.8))" : "none", transition: "color var(--dur-fast) var(--ease-out)" }}>
+-      <Icon name={item.icon} size={20} />
+-      {item.active && <span style={{ position: "absolute", left: -14, top: 12, width: 3, height: 20, borderRadius: 2, background: "var(--cyan-400)" }} />}
+-    </button>
+-  );
+-}
+-
+-export function SideRail({ items, onSelect }) {
+-  return (
+-    <aside style={{ width: "var(--rail-width)", display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
+-      {items.map((i) => <RailItem key={i.label} item={i} onSelect={onSelect} />)}
+-    </aside>
+-  );
+-}
+-
+-function NavLink({ item, onSelect }) {
+-  const [h, hover] = useHover();
+-  const lit = item.active || h;
+-  return (
+-    <a {...hover} href="#" onClick={(e) => { e.preventDefault(); onSelect(item); }}
+-      style={{ ...label, position: "relative", fontSize: 11, color: lit ? "var(--ink-0)" : "var(--ink-100)", opacity: lit ? 1 : 0.8, textShadow: item.active ? "var(--text-glow)" : "none", padding: "8px 0", transition: "all var(--dur-fast) var(--ease-out)" }}>
+-      {item.label}
+-      {item.active && <span style={{ position: "absolute", left: "50%", bottom: -4, width: 4, height: 4, marginLeft: -2, borderRadius: "50%", background: "var(--cyan-400)", boxShadow: "0 0 8px var(--cyan-400)" }} />}
+-    </a>
+-  );
+-}
+-
+-export function TopNav({ brand, links, onSelect, actions }) {
+-  return (
+-    <nav style={{ display: "flex", alignItems: "center", gap: 56, height: "var(--nav-height)", padding: "0 40px 0 0" }}>
+-      <div style={{ width: "var(--rail-width)", display: "grid", placeItems: "center", flex: "none", fontFamily: "var(--font-display)", fontWeight: 900, fontSize: 14, letterSpacing: ".04em", color: "var(--ink-0)" }}>{brand}</div>
+-      <div style={{ display: "flex", gap: 44, flex: 1 }}>
+-        {links.map((l) => <NavLink key={l.label} item={l} onSelect={onSelect} />)}
+-      </div>
+-      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>{actions}</div>
+-    </nav>
+-  );
+-}
+-
+-export function Card({ padding = 24, interactive, glow, children, onClick, style }) {
++export function Card({ padding = 22, interactive, glow, children, onClick, style }) {
+   const [h, hover] = useHover();
+   const lit = glow || (interactive && h);
+   return (
+     <div {...hover} onClick={onClick}
+       role={interactive ? "button" : undefined} tabIndex={interactive ? 0 : undefined}
+       onKeyDown={interactive ? (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), onClick()) : undefined}
+-      style={{ padding, borderRadius: "var(--radius-lg)", background: "var(--surface-glass)", backdropFilter: "var(--blur-glass)", border: "1px solid " + (lit ? "rgba(111,214,246,.55)" : "var(--border-subtle)"), boxShadow: lit ? "var(--shadow-card),0 0 24px rgba(61,191,235,.25)" : "var(--shadow-card)", transform: interactive && h ? "translateY(-4px)" : "none", cursor: interactive ? "pointer" : "default", transition: ease, color: "var(--text-primary)", ...style }}>
++      style={{ position: "relative", padding, borderRadius: "var(--radius-lg)", background: "linear-gradient(180deg, rgba(34,26,22,.75), rgba(18,13,11,.8))", backdropFilter: "var(--blur-glass)", border: "1px solid " + (lit ? "var(--border-hot)" : "var(--border-subtle)"), boxShadow: lit ? "var(--shadow-card), 0 0 30px -6px rgba(255,107,26,.35)" : "var(--shadow-card)", transform: interactive && h ? "translateY(-3px)" : "none", cursor: interactive ? "pointer" : "default", transition: ease, color: "var(--text-primary)", ...style }}>
+       {children}
+     </div>
+   );
+@@ -180,76 +127,48 @@ export function Dialog({ open, title, eyebrow, children, actions, onClose, width
+   if (!open) return null;
+   return (
+     <div onClick={onClose}
+-      style={{ position: "fixed", inset: 0, zIndex: 50, display: "grid", placeItems: "center", background: "rgba(8,6,24,.6)", backdropFilter: "blur(6px)" }}>
++      style={{ position: "fixed", inset: 0, zIndex: 80, display: "grid", placeItems: "center", background: "rgba(3,2,2,.7)", backdropFilter: "blur(6px)", animation: "rhFade 220ms both" }}>
+       <div role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}
+-        style={{ position: "relative", width, maxWidth: "calc(100% - 32px)", padding: 32, borderRadius: "var(--radius-xl)", background: "var(--surface-glass-strong)", backdropFilter: "var(--blur-glass)", border: "1px solid var(--border-subtle)", boxShadow: "var(--shadow-frame),0 0 60px rgba(84,34,115,.6)", color: "var(--text-primary)", display: "flex", flexDirection: "column", gap: 20 }}>
+-        <IconButton icon="x" label="Chiudi" size={36} variant="ghost" onClick={onClose} style={{ position: "absolute", top: 16, right: 16 }} />
+-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+-          {eyebrow && <span style={{ ...label, fontSize: 10, color: "var(--cyan-400)" }}>{eyebrow}</span>}
+-          <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontWeight: 900, fontSize: 28, lineHeight: 1.1, textTransform: "uppercase", color: "inherit" }}>{title}</h2>
++        style={{ position: "relative", width, maxWidth: "calc(100% - 32px)", padding: 30, borderRadius: "var(--radius-xl)", background: "var(--surface-glass-strong)", backdropFilter: "var(--blur-glass)", border: "1px solid var(--border-subtle)", borderTop: "2px solid var(--forge)", boxShadow: "var(--shadow-frame), 0 -20px 60px -30px rgba(255,107,26,.6)", color: "var(--text-primary)", display: "flex", flexDirection: "column", gap: 20, animation: "rhModalIn calc(var(--rh-k) * 420ms) var(--ease-out) both" }}>
++        <IconButton icon="x" label="Chiudi" size={34} variant="ghost" onClick={onClose} style={{ position: "absolute", top: 14, right: 14 }} />
++        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
++          {eyebrow && <span style={{ font: "600 13px var(--font-body)", color: "var(--forge)" }}>{eyebrow}</span>}
++          <h2 style={{ margin: 0, font: "900 34px/1 var(--font-display)", color: "inherit" }}>{title}</h2>
+         </div>
+-        <div style={{ fontFamily: "var(--font-body)", fontWeight: 500, fontSize: 15, lineHeight: 1.6, color: "var(--text-secondary)" }}>{children}</div>
++        <div style={{ font: "400 15px/1.6 var(--font-body)", color: "var(--text-secondary)" }}>{children}</div>
+         {actions && <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>{actions}</div>}
+       </div>
+     </div>
+   );
+ }
+ 
+-const TINT = { magenta: "var(--grad-tint-magenta)", cyan: "var(--grad-tint-cyan)", violet: "var(--grad-tint-violet)", gold: "var(--grad-tint-gold)" };
+-
+-export function HeroCard({ name, title, tint = "violet", active, width = 270, height = 190, onClick }) {
+-  const [h, hover] = useHover();
+-  const lit = active || h;
+-  return (
+-    <button {...hover} type="button" onClick={onClick}
+-      style={{ position: "relative", width, height, flex: "none", padding: 0, borderRadius: "var(--radius-md)", overflow: "hidden", cursor: "pointer", textAlign: "left", background: TINT[tint], border: "1px solid " + (lit ? "rgba(127,227,255,.75)" : "rgba(255,255,255,.16)"), boxShadow: lit ? "0 0 0 1px rgba(127,227,255,.35),0 0 28px rgba(61,191,235,.45),var(--shadow-card)" : "var(--shadow-card)", transform: h ? "translateY(-4px)" : "none", transition: ease }}>
+-      <span style={{ position: "absolute", inset: 0, background: "var(--grad-scrim-bottom)" }} />
+-      <span style={{ position: "absolute", left: 18, bottom: 16, right: 18, display: "flex", flexDirection: "column", gap: 4 }}>
+-        <span style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: 19, letterSpacing: ".04em", textTransform: "uppercase", color: "var(--ink-0)" }}>{name}</span>
+-        {title && <span style={{ fontFamily: "var(--font-body)", fontWeight: 500, fontSize: 12, color: "var(--ink-100)" }}>{title}</span>}
+-      </span>
+-    </button>
+-  );
+-}
+-
+ export function Tag({ selected, icon, onClick, children, style }) {
+   const [h, hover] = useHover();
+   return (
+     <button {...hover} type="button" onClick={onClick} aria-pressed={!!selected}
+-      style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 34, padding: "0 16px", borderRadius: "var(--radius-pill)", font: "700 13px var(--font-body)", cursor: "pointer", color: selected ? "var(--cyan-200)" : h ? "var(--ink-0)" : "var(--text-secondary)", background: selected ? "rgba(61,191,235,.14)" : h ? "var(--surface-hover)" : "var(--surface-raised)", border: "1px solid " + (selected ? "var(--cyan-500)" : "var(--border-subtle)"), boxShadow: selected ? "0 0 16px rgba(61,191,235,.3)" : "none", transition: ease, ...style }}>
++      style={{ display: "inline-flex", alignItems: "center", gap: 7, height: 34, padding: "0 13px", borderRadius: "var(--radius-sm)", font: "600 14px var(--font-body)", cursor: "pointer", color: selected ? "#1a0a02" : h ? "var(--bone)" : "var(--sand)", background: selected ? "var(--forge)" : h ? "var(--cinder)" : "var(--surface-raised)", border: "1px solid " + (selected ? "var(--forge)" : h ? "var(--border-strong)" : "var(--border-subtle)"), boxShadow: selected ? "0 6px 18px -6px rgba(255,107,26,.7)" : "none", transition: ease, ...style }}>
+       {icon && <Icon name={icon} size={15} />}{children}
+     </button>
+   );
+ }
+ 
+-const TOAST = { info: ["var(--cyan-500)", "info"], success: ["var(--green-500)", "check"], warning: ["var(--amber-500)", "triangle-alert"], danger: ["var(--red-500)", "circle-x"], reward: ["var(--gold-500)", "trophy"] };
++const TOAST = { info: ["var(--forge)", "info"], success: ["var(--ok)", "check"], warning: ["var(--warn)", "triangle-alert"], danger: ["var(--danger)", "circle-x"], reward: ["var(--molten)", "trophy"] };
+ 
+ export function Toast({ tone = "info", title, message, onClose, style }) {
+   const [c, ic] = TOAST[tone] || TOAST.info;
+   return (
+-    <div role="status" style={{ display: "flex", alignItems: "flex-start", gap: 14, width: 360, maxWidth: "100%", padding: "14px 16px", borderRadius: "var(--radius-md)", background: "var(--surface-glass-strong)", backdropFilter: "var(--blur-glass)", border: "1px solid var(--border-subtle)", boxShadow: "var(--shadow-card)", color: "var(--text-primary)", ...style }}>
+-      <span style={{ width: 32, height: 32, flex: "none", borderRadius: "50%", display: "grid", placeItems: "center", background: `color-mix(in srgb, ${c} 20%, transparent)`, color: c, boxShadow: `0 0 14px color-mix(in srgb, ${c} 40%, transparent)` }}>
++    <div role="status" style={{ display: "flex", alignItems: "flex-start", gap: 12, width: 360, maxWidth: "100%", padding: "13px 14px", borderRadius: "var(--radius-md)", background: "var(--surface-glass-strong)", backdropFilter: "var(--blur-glass)", border: "1px solid var(--border-subtle)", boxShadow: `inset 3px 0 0 ${c}, var(--shadow-card)`, color: "var(--text-primary)", ...style }}>
++      <span style={{ width: 30, height: 30, flex: "none", borderRadius: "var(--radius-sm)", display: "grid", placeItems: "center", background: `color-mix(in srgb, ${c} 18%, transparent)`, color: c }}>
+         <Icon name={ic} size={16} />
+       </span>
+-      <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, paddingTop: 2, minWidth: 0 }}>
+-        <span style={{ font: "800 14px var(--font-display)" }}>{title}</span>
+-        {message && <span style={{ font: "500 13px/1.5 var(--font-body)", color: "var(--text-secondary)" }}>{message}</span>}
++      <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, paddingTop: 4, minWidth: 0 }}>
++        <span style={{ font: "600 15px var(--font-body)" }}>{title}</span>
++        {message && <span style={{ font: "400 13px/1.5 var(--font-body)", color: "var(--text-secondary)" }}>{message}</span>}
+       </span>
+-      {onClose && <button type="button" aria-label="Chiudi notifica" onClick={onClose} style={{ background: "none", border: "none", padding: 4, cursor: "pointer", color: "var(--ink-300)" }}><Icon name="x" size={16} /></button>}
++      {onClose && <button type="button" aria-label="Chiudi notifica" onClick={onClose} style={{ background: "none", border: "none", padding: 4, cursor: "pointer", color: "var(--smoke)" }}><Icon name="x" size={16} /></button>}
+     </div>
+   );
+ }
+ 
+-// Deterministic pseudo-random so embers don't jump between renders.
+-const rnd = (k, q) => ((Math.sin(k * 99.13 + q) * 43758.5) % 1 + 1) % 1;
+-const EMBERS = Array.from({ length: 40 }, (_, k) => {
+-  const s = 2 + rnd(k, 3) * 4;
+-  return (
+-    <span key={k} style={{ position: "absolute", left: rnd(k, 1) * 100 + "%", top: rnd(k, 2) * 100 + "%", width: s, height: s, borderRadius: "50%", background: "var(--ember-300)", boxShadow: `0 0 ${s * 3}px var(--ember-500)`, opacity: 0.8, animation: `rhEmber ${8 + rnd(k, 5) * 10}s linear ${-rnd(k, 6) * 18}s infinite` }} />
+-  );
+-});
+-
+-/** Floating ember particles behind every screen. */
+-export function Embers() {
+-  return <div aria-hidden="true" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>{EMBERS}</div>;
+-}
++/** Retro-compatibilità: lo sfondo animato ora è RiftBackground (canvas). */
++export const Embers = RiftBackground;
+diff --git a/frontend/src/components/ui.jsx b/frontend/src/components/ui.jsx
+index d88f3ed..d44b31a 100644
+--- a/frontend/src/components/ui.jsx
++++ b/frontend/src/components/ui.jsx
+@@ -1,4 +1,4 @@
+-// Shared page building blocks, styled after the "RiftHub Prototype" design.
++// Blocchi condivisi delle pagine, tema "Forge" (nero + arancio).
+ import { AlertTriangle } from "lucide-react";
+ import { useEffect } from "react";
+ import { errMsg } from "../api/client";
+@@ -12,7 +12,7 @@ export function Card({ title, action, children, className = "", style, delay: d
+     <section className={`card flex flex-col gap-3.5 ${className}`} style={{ ...up(d), ...style }}>
+       {(title || action) && (
+         <header className="flex items-center justify-between gap-2">
+-          {title && <h2 className="flex items-center gap-2 text-[13px] font-extrabold uppercase tracking-[.14em]">{title}</h2>}
++          {title && <h2 className="m-0 flex items-center gap-2" style={{ font: "800 21px/1.1 var(--font-display)", letterSpacing: ".01em" }}>{title}</h2>}
+           {action}
+         </header>
+       )}
+@@ -21,22 +21,27 @@ export function Card({ title, action, children, className = "", style, delay: d
+   );
+ }
+ 
+-export function PageHeader({ title, subtitle, eyebrow = "RiftHub", tone = "cyan", children }) {
++export function PageHeader({ title, subtitle, eyebrow, tone = "forge", children }) {
++  const accent = { magenta: "#ff8a5c", gold: "var(--molten)", ice: "var(--ice)" }[tone] || "var(--forge)";
+   return (
+-    <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
++    <div className="mb-9 flex flex-wrap items-end justify-between gap-5">
+       <div className="flex flex-col gap-3">
+-        {eyebrow && <div className="self-start" style={up(0)}><DsBadge tone={tone} dot>{eyebrow}</DsBadge></div>}
+-        <h1 style={{ margin: 0, font: "900 clamp(36px,4.5vw,52px)/.95 var(--font-display)", textTransform: "uppercase", letterSpacing: "-.01em", ...up(60, 560) }}>{title}</h1>
+-        {subtitle && <p className="max-w-xl" style={{ margin: 0, font: "500 15px/1.6 var(--font-body)", color: "var(--ink-200)", ...up(120, 560) }}>{subtitle}</p>}
++        {eyebrow && (
++          <span className="flex items-center gap-2.5" style={{ font: "600 14px var(--font-body)", color: accent, ...up(0) }}>
++            <span style={{ width: 22, height: 2, background: accent, boxShadow: `0 0 10px ${accent}` }} />{eyebrow}
++          </span>
++        )}
++        <h1 style={{ margin: 0, font: "900 clamp(40px,5.4vw,68px)/.92 var(--font-display)", letterSpacing: "-.005em", color: "var(--bone)", ...up(50, 600) }}>{title}</h1>
++        {subtitle && <p className="max-w-xl" style={{ margin: 0, font: "400 17px/1.55 var(--font-body)", color: "var(--sand)", ...up(110, 600) }}>{subtitle}</p>}
+       </div>
+-      {children && <div className="flex flex-wrap items-center gap-2" style={up(180, 560)}>{children}</div>}
++      {children && <div className="flex flex-wrap items-center gap-2" style={up(170, 600)}>{children}</div>}
+     </div>
+   );
+ }
+ 
+-/** Inline script word, e.g. <>Scopri <Script>il</Script> talento</>. */
+-export function Script({ children, glow }) {
+-  return <span style={{ font: "400 .88em var(--font-script)", textTransform: "none", ...(glow && { color: "var(--cyan-200)", textShadow: "var(--text-glow)" }) }}>{children}</span>;
++/** Compatibilità: in passato una parola in corsivo script; ora il titolo resta tipograficamente uniforme. */
++export function Script({ children }) {
++  return <>{children}</>;
+ }
+ 
+ export function Loading({ label = "Caricamento...", cards = 3 }) {
+@@ -58,14 +63,14 @@ export function ErrorBox({ error }) {
+   if (!error) return null;
+   return (
+     <div className="flex items-center gap-2 rounded-[14px] border p-3 text-sm" role="alert"
+-      style={{ borderColor: "rgba(255,77,109,.4)", background: "rgba(255,77,109,.1)", color: "#ffb3c1" }}>
++      style={{ borderColor: "rgba(255,75,62,.4)", background: "rgba(255,75,62,.1)", color: "#ffb3a8" }}>
+       <AlertTriangle className="h-4 w-4 shrink-0" /> {typeof error === "string" ? error : errMsg(error)}
+     </div>
+   );
+ }
+ 
+ export function Empty({ children }) {
+-  return <p className="rounded-[14px] border border-dashed border-white/10 p-5 text-center text-sm text-slate-400">{children}</p>;
++  return <p className="m-0 rounded-[10px] border border-dashed p-6 text-center text-[15px]" style={{ borderColor: "var(--ash)", color: "var(--smoke)" }}>{children}</p>;
+ }
+ 
+ /** Renders loading / error / content for a react-query result. */
+@@ -77,7 +82,7 @@ export function QueryState({ query, children, cards }) {
+ }
+ 
+ // Legacy color names used across pages, mapped onto the design-system tones.
+-const TONE = { hex: "cyan", gold: "gold", red: "danger", green: "success", slate: "neutral", amber: "warning", magenta: "magenta" };
++const TONE = { hex: "forge", cyan: "forge", gold: "gold", red: "danger", green: "success", slate: "neutral", amber: "warning", magenta: "magenta", blue: "ice", sky: "ice" };
+ 
+ export function Badge({ color = "slate", dot, children }) {
+   return <DsBadge tone={TONE[color] || color} dot={dot}>{children}</DsBadge>;
+@@ -93,14 +98,14 @@ export function Modal({ open, onClose, title, eyebrow, children, wide }) {
+   if (!open) return null;
+   return (
+     <div className="fixed inset-0 z-[70] grid place-items-center p-4" onClick={onClose}
+-      style={{ background: "rgba(8,6,24,.6)", backdropFilter: "blur(6px)", animation: "rhFade calc(var(--rh-k) * 260ms) ease both" }}>
++      style={{ background: "rgba(3,2,2,.72)", backdropFilter: "blur(6px)", animation: "rhFade calc(var(--rh-k) * 240ms) ease both" }}>
+       <div role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}
+-        className={`relative flex max-h-[88vh] w-full flex-col gap-5 overflow-y-auto p-8 ${wide ? "max-w-[640px]" : "max-w-[460px]"}`}
+-        style={{ borderRadius: "var(--radius-xl)", background: "var(--surface-glass-strong)", backdropFilter: "var(--blur-glass)", border: "1px solid var(--border-subtle)", boxShadow: "var(--shadow-frame),0 0 60px rgba(84,34,115,.6)", animation: "rhModalIn calc(var(--rh-k) * 380ms) var(--ease-out) both" }}>
++        className={`relative flex max-h-[88vh] w-full flex-col gap-5 overflow-y-auto p-7 ${wide ? "max-w-[660px]" : "max-w-[480px]"}`}
++        style={{ borderRadius: "var(--radius-xl)", background: "var(--surface-glass-strong)", backdropFilter: "var(--blur-glass)", border: "1px solid var(--border-subtle)", borderTop: "2px solid var(--forge)", boxShadow: "var(--shadow-frame), 0 -20px 60px -30px rgba(255,107,26,.6)", animation: "rhModalIn calc(var(--rh-k) * 420ms) var(--ease-out) both" }}>
+         <IconButton icon="x" label="Chiudi" size={36} variant="ghost" onClick={onClose} style={{ position: "absolute", top: 16, right: 16 }} />
+         <div className="flex flex-col gap-2 pr-10">
+-          {eyebrow && <span className="text-[10px] font-extrabold uppercase tracking-[.14em] text-hex">{eyebrow}</span>}
+-          <h2 className="m-0 text-[28px] font-black uppercase leading-[1.1]">{title}</h2>
++          {eyebrow && <span style={{ font: "600 13px var(--font-body)", color: "var(--forge)" }}>{eyebrow}</span>}
++          <h2 className="m-0" style={{ font: "900 32px/1 var(--font-display)" }}>{title}</h2>
+         </div>
+         {children}
+       </div>
+@@ -117,11 +122,11 @@ export function Field({ label, children }) {
+   );
+ }
+ 
+-/** Small uppercase label above a group of chips. */
++/** Small label above a group of chips. */
+ export function ChipGroup({ label, children }) {
+   return (
+     <div className="flex flex-col gap-2">
+-      <span className="text-[10px] font-extrabold uppercase tracking-[.14em] text-slate-400">{label}</span>
++      <span style={{ font: "600 13px var(--font-body)", color: "var(--smoke)" }}>{label}</span>
+       <div className="flex flex-wrap gap-1.5">{children}</div>
+     </div>
+   );
+@@ -144,17 +149,17 @@ export function ScoreBar({ value, max = 100, thin, delay: d = 0 }) {
+   return (
+     <div className={`${thin ? "h-[3px]" : "h-1.5"} w-full overflow-hidden rounded-full bg-white/10`}>
+       <div className="h-full origin-left rounded-full"
+-        style={{ width: `${pct}%`, background: thin ? "var(--cyan-400)" : "var(--grad-cta)", boxShadow: thin ? "none" : "0 0 10px rgba(61,191,235,.6)", animation: `rhGrow calc(var(--rh-k) * 900ms) var(--ease-out) ${delay(d)} both` }} />
++        style={{ width: `${pct}%`, background: thin ? "var(--forge)" : "var(--grad-cta)", boxShadow: thin ? "none" : "0 0 12px rgba(255,107,26,.6)", animation: `rhGrow calc(var(--rh-k) * 900ms) var(--ease-out) ${delay(d)} both` }} />
+     </div>
+   );
+ }
+ 
+ /** Big glowing number tile (dashboard). */
+-export function Stat({ label, value, hint, color = "#fff", glow, delay: d = 0 }) {
++export function Stat({ label, value, hint, color = "var(--bone)", glow, delay: d = 0 }) {
+   return (
+     <div className="card flex flex-col gap-2" style={up(d)}>
+-      <span className="text-[11px] font-extrabold uppercase tracking-[.14em] text-slate-400">{label}</span>
+-      <span className="rh-mono" style={{ font: "700 40px/1 var(--font-mono)", color, textShadow: glow ? "var(--text-glow)" : "none" }}>{value}</span>
++      <span style={{ font: "600 14px var(--font-body)", color: "var(--smoke)" }}>{label}</span>
++      <span style={{ font: "900 56px/.9 var(--font-display)", fontVariantNumeric: "tabular-nums", color, textShadow: glow ? "var(--text-glow)" : "none" }}>{value}</span>
+       {hint && <span className="text-[13px] text-slate-400">{hint}</span>}
+     </div>
+   );
+@@ -167,8 +172,8 @@ export function ResultPicker({ a, b, options, onPick, disabled }) {
+       <span className="text-sm text-slate-300">Scegli il risultato della serie.</span>
+       {options.map(([sa, sb]) => (
+         <button key={`${sa}-${sb}`} type="button" disabled={disabled} onClick={() => onPick({ score_a: sa, score_b: sb })}
+-          className="h-12 cursor-pointer rounded-[14px] border border-white/10 text-xs font-extrabold uppercase tracking-[.12em] text-white transition hover:-translate-y-0.5 hover:border-hex/70 hover:bg-hex-dark/10 hover:shadow-[0_0_18px_rgba(61,191,235,.3)] active:scale-[.97] disabled:opacity-40"
+-          style={{ background: "rgba(11,9,32,.5)" }}>
++          className="h-12 cursor-pointer rounded-[8px] border border-white/10 text-[17px] text-[color:var(--bone)] transition hover:-translate-y-0.5 hover:border-hex/70 hover:bg-hex/10 hover:shadow-[0_0_20px_rgba(255,107,26,.3)] active:scale-[.97] disabled:opacity-40"
++          style={{ background: "rgba(12,9,8,.7)", fontFamily: "var(--font-display)", fontWeight: 800 }}>
+           {sa === sb ? `Pareggio ${sa}–${sb}` : `${sa > sb ? a : b} vince ${Math.max(sa, sb)}–${Math.min(sa, sb)}`}
+         </button>
+       ))}
+diff --git a/frontend/src/lib/tactics.js b/frontend/src/lib/tactics.js
+index f1acd7d..d5b7274 100644
+--- a/frontend/src/lib/tactics.js
++++ b/frontend/src/lib/tactics.js
+@@ -1,4 +1,4 @@
+-export const SIDE_COLOR = { BLUE: "#38bdf8", RED: "#f87171" };
++export const SIDE_COLOR = { BLUE: "#5aa9ff", RED: "#ff6b1a" };
+ 
+ const tokenKey = (e) => `${e.team_side}:${e.champion || e.text}`;
+ 
+diff --git a/frontend/src/main.jsx b/frontend/src/main.jsx
+index fc683ff..9da4e62 100644
+--- a/frontend/src/main.jsx
++++ b/frontend/src/main.jsx
+@@ -2,6 +2,13 @@ import React from "react";
+ import ReactDOM from "react-dom/client";
+ import { BrowserRouter } from "react-router-dom";
+ import App from "./App";
++import "@fontsource/big-shoulders-display/700";
++import "@fontsource/big-shoulders-display/800";
++import "@fontsource/big-shoulders-display/900";
++import "@fontsource/barlow/400";
++import "@fontsource/barlow/500";
++import "@fontsource/barlow/600";
++import "@fontsource/barlow/700";
+ import "./styles/index.css";
+ import "./styles/ds.css";
+ 
+diff --git a/frontend/src/pages/Auth.jsx b/frontend/src/pages/Auth.jsx
+index 0a66e30..d2d3843 100644
+--- a/frontend/src/pages/Auth.jsx
++++ b/frontend/src/pages/Auth.jsx
+@@ -1,12 +1,15 @@
+ import { useState } from "react";
+ import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+ import { errMsg } from "../api/client";
+-import { Button, Embers, Input, Tag } from "../components/ds";
++import { Brand } from "../components/Brand";
++import { Button, Input, Tag } from "../components/ds";
++import RiftBackground from "../components/RiftBackground";
++import { LiveRift } from "../components/RiftMap";
+ import { ChipGroup } from "../components/ui";
+ import { useAuth } from "../context/AuthContext";
+ 
+ const ROLES = [["PLAYER", "Player"], ["COACH", "Coach"], ["MANAGER", "Manager"], ["SCOUT", "Scout"]];
+-const tab = "relative h-9 cursor-pointer border-none bg-transparent text-[11px] font-extrabold uppercase tracking-[.14em] transition-colors";
++const tab = "relative z-[1] h-10 cursor-pointer border-none bg-transparent transition-colors";
+ 
+ function AuthPage({ register }) {
+   const { user, login, register: signUp } = useAuth();
+@@ -36,43 +39,54 @@ function AuthPage({ register }) {
+   };
+ 
+   return (
+-    <div className="relative flex min-h-screen flex-col items-center gap-10 px-5 py-8">
+-      <Embers />
+-      <Link to="/" className="relative self-start text-sm font-black tracking-[.14em] !text-white" style={{ animation: "rhFade calc(var(--rh-k) * 500ms) both" }}>RIFTHUB</Link>
+-      {/* alternating keyframe names restart the shake on every failed attempt */}
+-      <div className="relative my-auto w-full max-w-[440px]" style={{ animation: shakes ? `rhShake${shakes % 2 ? "" : "2"} 420ms var(--ease-out)` : "none" }}>
+-        <form onSubmit={submit} noValidate className="flex flex-col gap-5 p-8"
+-          style={{ borderRadius: "var(--radius-xl)", background: "var(--surface-glass-strong)", backdropFilter: "var(--blur-glass)", border: "1px solid var(--border-subtle)", boxShadow: "var(--shadow-frame),0 0 60px rgba(84,34,115,.6)", animation: "rhModalIn calc(var(--rh-k) * 560ms) var(--ease-out) both" }}>
+-          <div className="relative grid grid-cols-2 rounded-full border border-white/10 p-1" style={{ background: "rgba(11,9,32,.6)" }}>
+-            <span aria-hidden="true" className="absolute bottom-1 left-1 top-1 rounded-full"
+-              style={{ width: "calc(50% - 4px)", background: "rgba(61,191,235,.16)", border: "1px solid rgba(111,214,246,.5)", boxShadow: "0 0 16px rgba(61,191,235,.25)", transform: register ? "translateX(100%)" : "none", transition: "transform calc(var(--rh-k) * 420ms) var(--ease-out)" }} />
+-            <button type="button" className={tab} style={{ color: register ? "var(--ink-300)" : "#fff" }} onClick={() => navigate("/login")}>Accedi</button>
+-            <button type="button" className={tab} style={{ color: register ? "#fff" : "var(--ink-300)" }} onClick={() => navigate("/register")}>Registrati</button>
+-          </div>
+-          <div className="flex flex-col gap-2">
+-            <span className="text-[10px] font-extrabold uppercase tracking-[.14em] text-hex">{register ? "Nuovo giocatore" : "Benvenuto"}</span>
+-            <h1 className="m-0 text-[28px] font-black uppercase leading-[1.1]">{register ? "Crea account" : "Accedi"}</h1>
+-          </div>
+-          {register && (
+-            <div className="flex flex-col gap-5" style={{ animation: "rhUp calc(var(--rh-k) * 420ms) var(--ease-out) both" }}>
+-              <Input label="Nome visualizzato" icon="user" placeholder="Il tuo nickname" value={form.display_name} onChange={set("display_name")} />
+-              <ChipGroup label="Ruolo">
+-                {ROLES.map(([v, l]) => <Tag key={v} selected={form.role === v} onClick={() => setForm({ ...form, role: v })}>{l}</Tag>)}
+-              </ChipGroup>
++    <div className="relative grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
++      <RiftBackground intensity="full" />
++
++      {/* colonna sinistra: la mappa come manifesto */}
++      <aside className="relative hidden flex-col justify-between overflow-hidden p-10 lg:flex" style={{ borderRight: "1px solid var(--border-subtle)" }}>
++        <Link to="/" className="relative z-[1] self-start" aria-label="Torna alla home"><Brand size={30} /></Link>
++        <div className="relative z-[1] grid place-items-center">
++          <LiveRift className="w-full max-w-[520px]" style={{ filter: "drop-shadow(0 30px 80px rgba(255,107,26,.18))", animation: "rhScale 900ms var(--ease-out) both" }} />
++        </div>
++        <p className="relative z-[1] m-0 max-w-[420px]" style={{ font: "800 30px/1.05 var(--font-display)", color: "var(--bone)" }}>
++          Scrim, tornei, scouting e review. Tutto il lavoro del team, su una sola mappa.
++        </p>
++      </aside>
++
++      <div className="relative flex flex-col items-center gap-10 px-5 py-8">
++        <Link to="/" className="relative self-start lg:hidden" aria-label="Torna alla home"><Brand size={26} /></Link>
++        {/* nomi di keyframe alternati: lo shake riparte a ogni tentativo fallito */}
++        <div className="relative my-auto w-full max-w-[420px]" style={{ animation: shakes ? `rhShake${shakes % 2 ? "" : "2"} 420ms var(--ease-out)` : "none" }}>
++          <form onSubmit={submit} noValidate className="flex flex-col gap-5 p-8"
++            style={{ borderRadius: "var(--radius-xl)", background: "var(--surface-glass-strong)", backdropFilter: "var(--blur-glass)", border: "1px solid var(--border-subtle)", borderTop: "2px solid var(--forge)", boxShadow: "var(--shadow-frame), 0 -24px 70px -30px rgba(255,107,26,.55)", animation: "rhModalIn calc(var(--rh-k) * 600ms) var(--ease-out) both" }}>
++            <div className="relative grid grid-cols-2 rounded-[8px] border p-1" style={{ background: "var(--obsidian)", borderColor: "var(--border-subtle)" }}>
++              <span aria-hidden="true" className="absolute bottom-1 left-1 top-1 rounded-[6px]"
++                style={{ width: "calc(50% - 4px)", background: "var(--forge)", boxShadow: "0 6px 20px -6px rgba(255,107,26,.8)", transform: register ? "translateX(100%)" : "none", transition: "transform calc(var(--rh-k) * 460ms) var(--ease-out)" }} />
++              <button type="button" className={tab} style={{ font: "800 17px var(--font-display)", color: register ? "var(--sand)" : "#1a0a02" }} onClick={() => navigate("/login")}>Accedi</button>
++              <button type="button" className={tab} style={{ font: "800 17px var(--font-display)", color: register ? "#1a0a02" : "var(--sand)" }} onClick={() => navigate("/register")}>Registrati</button>
++            </div>
++            <div className="flex flex-col gap-1.5">
++              <h1 className="m-0" style={{ font: "900 44px/.95 var(--font-display)" }}>{register ? "Entra nella Rift" : "Bentornato"}</h1>
++              <p className="m-0 text-[15px]" style={{ color: "var(--smoke)" }}>{register ? "Crea il tuo profilo e scegli il ruolo nel team." : "Accedi per vedere scrim, tornei e review del tuo team."}</p>
+             </div>
+-          )}
+-          <Input label="Email" icon="mail" type="email" autoComplete="email" placeholder="nome@team.gg" value={form.email} onChange={set("email")} />
+-          <Input label={register ? "Password (min 8 caratteri)" : "Password"} icon="lock" type="password" autoComplete={register ? "new-password" : "current-password"} placeholder="••••••••" value={form.password} onChange={set("password")} error={error} />
+-          <Button type="submit" fullWidth disabled={busy}>{busy ? (register ? "Creazione..." : "Accesso...") : register ? "Crea account" : "Accedi"}</Button>
+-          {!register && (
+-            <p className="m-0 text-center text-xs text-slate-400">
+-              Demo: <code>manager@rifthub.dev</code> / <code>Demo1234!</code> (anche coach, player, scout, admin)
+-            </p>
+-          )}
+-          <Link to={register ? "/login" : "/register"} className="self-center text-[13px]">
+-            {register ? "Hai già un account? Accedi" : "Non hai un account? Registrati"}
+-          </Link>
+-        </form>
++            {register && (
++              <div className="flex flex-col gap-5" style={{ animation: "rhUp calc(var(--rh-k) * 420ms) var(--ease-out) both" }}>
++                <Input label="Nome visualizzato" icon="user" placeholder="Il tuo nickname" value={form.display_name} onChange={set("display_name")} />
++                <ChipGroup label="Ruolo">
++                  {ROLES.map(([v, l]) => <Tag key={v} selected={form.role === v} onClick={() => setForm({ ...form, role: v })}>{l}</Tag>)}
++                </ChipGroup>
++              </div>
++            )}
++            <Input label="Email" icon="mail" type="email" autoComplete="email" placeholder="nome@team.gg" value={form.email} onChange={set("email")} />
++            <Input label={register ? "Password (almeno 8 caratteri)" : "Password"} icon="lock" type="password" autoComplete={register ? "new-password" : "current-password"} placeholder="••••••••" value={form.password} onChange={set("password")} error={error} />
++            <Button type="submit" fullWidth size="lg" disabled={busy}>{busy ? (register ? "Creazione account…" : "Accesso in corso…") : register ? "Crea account" : "Accedi"}</Button>
++            {!register && (
++              <p className="m-0 text-center text-[13px]" style={{ color: "var(--smoke)" }}>
++                Account demo: <code>manager@rifthub.dev</code>, password <code>Demo1234!</code>
++              </p>
++            )}
++          </form>
++        </div>
+       </div>
+     </div>
+   );
+diff --git a/frontend/src/pages/Dashboard.jsx b/frontend/src/pages/Dashboard.jsx
+index 37221a3..4390f82 100644
+--- a/frontend/src/pages/Dashboard.jsx
++++ b/frontend/src/pages/Dashboard.jsx
+@@ -60,12 +60,12 @@ function WinRateChart({ weekly }) {
+     <>
+       <svg viewBox="0 0 600 180" preserveAspectRatio="none" className="h-[180px] w-full overflow-visible">
+         <defs>
+-          <linearGradient id="rhArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3dbfeb" stopOpacity=".35" /><stop offset="1" stopColor="#3dbfeb" stopOpacity="0" /></linearGradient>
++          <linearGradient id="rhArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ff6b1a" stopOpacity=".35" /><stop offset="1" stopColor="#ff6b1a" stopOpacity="0" /></linearGradient>
+         </defs>
+         {[10, 85, 160].map((y) => <line key={y} x1="0" y1={y} x2="600" y2={y} stroke="rgba(255,255,255,.06)" />)}
+         <path d={`${line} L${pts.at(-1)[0]},170 L${pts[0][0]},170 Z`} fill="url(#rhArea)" style={{ animation: "rhFade calc(var(--rh-k) * 900ms) ease calc(var(--rh-k) * 900ms) both" }} />
+-        <path d={line} pathLength="1" fill="none" stroke="#6fd6f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"
+-          style={{ strokeDasharray: 1, filter: "drop-shadow(0 0 6px rgba(61,191,235,.8))", animation: "rhDraw calc(var(--rh-k) * 1400ms) var(--ease-out) calc(var(--rh-k) * 400ms) both" }} />
++        <path d={line} pathLength="1" fill="none" stroke="#ff9a52" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"
++          style={{ strokeDasharray: 1, filter: "drop-shadow(0 0 6px rgba(255,107,26,.8))", animation: "rhDraw calc(var(--rh-k) * 1400ms) var(--ease-out) calc(var(--rh-k) * 400ms) both" }} />
+       </svg>
+       <div className="rh-mono flex justify-between text-[11px] font-semibold text-slate-500">{labels.map((l) => <span key={l}>{l}</span>)}</div>
+     </>
+diff --git a/frontend/src/pages/Home.jsx b/frontend/src/pages/Home.jsx
+index ed25d23..7a2f0e5 100644
+--- a/frontend/src/pages/Home.jsx
++++ b/frontend/src/pages/Home.jsx
+@@ -1,223 +1,211 @@
+-// Public landing page, implemented from the Claude Design file "RiftHub Home.dc.html".
+-import { useCallback, useEffect, useState } from "react";
+-import { useNavigate } from "react-router-dom";
+-import { errMsg } from "../api/client";
+-import { Badge, Button, Card, Dialog, Embers, HeroCard, Icon, IconButton, Input, SideRail, TopNav } from "../components/ds";
++// Landing pubblica. Protagonista: la minimappa di Summoner's Rift, viva e interattiva.
++import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "motion/react";
++import { useState } from "react";
++import { Link, useNavigate } from "react-router-dom";
++import { Brand } from "../components/Brand";
++import { Button, Icon } from "../components/ds";
++import RiftBackground from "../components/RiftBackground";
++import { LiveRift, ROLES } from "../components/RiftMap";
+ import { useAuth } from "../context/AuthContext";
+ 
+ const FANTALOL = "https://fantalol.win";
++const EASE = [0.16, 1, 0.3, 1];
++
++// Cosa fa RiftHub per ciascun ruolo: compare quando evidenzi il ruolo sulla mappa.
++const ROLE_TIPS = {
++  T: "Pianifica teleport e rotazioni del lato top sulla lavagna tattica.",
++  J: "Disegna il pathing della prima clear e condividilo prima della scrim.",
++  M: "Rivedi le roam con i commenti a timestamp nella VOD review.",
++  A: "Simula il draft e scegli la bot lane che regge la tua composizione.",
++  S: "Segna i ward chiave sulla mappa e salvali come frame animati.",
++};
+ 
+ const MODS = [
+-  { key: "scrim", to: "/scrims", name: "Scrim", title: "Il campo d'allenamento", tint: "cyan", icon: "swords", a: "Trova", c: "la", b: "scrim", cta: "Cerca una scrim", body: "Prenota partite d'allenamento con team del tuo livello, conferma l'orario e raccogli i risultati in un'unica bacheca.", short: "Prenota allenamenti con team del tuo livello e archivia i risultati." },
+-  { key: "tornei", to: "/tournaments", name: "Tornei", title: "La strada per la coppa", tint: "gold", icon: "trophy", a: "Conquista", c: "il", b: "torneo", cta: "Vedi i tornei", body: "Iscrivi il team, segui il bracket in tempo reale e tieni traccia di ogni turno fino alla finale.", short: "Iscrizioni, bracket live e storico di ogni turno." },
+-  { key: "scouting", to: "/scouting", name: "Scouting", title: "Il cacciatore di talenti", tint: "magenta", icon: "search", a: "Scopri", c: "il", b: "talento", cta: "Inizia lo scouting", body: "Sfoglia i profili dei giocatori, filtra per ruolo e rank e trova chi completa la tua line-up.", short: "Profili giocatore filtrati per ruolo, rank e disponibilità." },
+-  { key: "tattiche", to: "/tactics", name: "Tattiche", title: "La mappa del comandante", tint: "violet", icon: "map", a: "Disegna", c: "la", b: "vittoria", cta: "Apri la lavagna", body: "Prepara rotazioni e piani di gioco sulla mappa, lato blu o rosso, e condividili con il team prima della partita.", short: "Rotazioni e piani di gioco sulla mappa, condivisi col team." },
+-  { key: "draft", to: "/draft", name: "Draft", title: "Il tavolo delle scelte", tint: "cyan", icon: "layers", a: "Vinci", c: "il", b: "draft", cta: "Simula un draft", body: "Simula pick e ban, salva le composizioni migliori e arriva alla selezione campioni con un piano chiaro.", short: "Simulatore di pick e ban con composizioni salvate." },
+-  { key: "vod", to: "/vod", name: "VOD Review", title: "L'archivio delle giocate", tint: "magenta", icon: "clapperboard", a: "Rivedi", c: "ogni", b: "giocata", cta: "Carica una VOD", body: "Carica le registrazioni, commenta i momenti chiave con timestamp e trasforma ogni errore in una lezione.", short: "Registrazioni commentate con timestamp sui momenti chiave." },
+-  { key: "coaching", to: "/coaching", name: "Coaching", title: "La voce dalla panchina", tint: "gold", icon: "graduation-cap", a: "Cresci", c: "col", b: "coach", cta: "Trova un coach", body: "Assegna obiettivi ai giocatori, programma le sessioni e misura i progressi settimana dopo settimana.", short: "Obiettivi, sessioni e progressi di ogni giocatore." },
+-  { key: "fantalol", name: "FantaLol", title: "Il gioco nel gioco", tint: "violet", icon: "gamepad-2", a: "Sfida", c: "i", b: "campioni", cta: "Apri FantaLol", body: "Schiera la tua formazione fantasy con i pro della stagione e sfida i compagni di squadra giornata dopo giornata.", short: "La lega fantasy sui pro, giocata con il tuo team.", ext: FANTALOL },
++  { to: "/scrims", name: "Scrim", icon: "swords", body: "Matchmaking per orari, rank e regione. Conferma l'avversario e archivia i risultati." },
++  { to: "/tournaments", name: "Tornei", icon: "trophy", body: "Bracket a eliminazione diretta o gironi all'italiana, con classifica aggiornata." },
++  { to: "/scouting", name: "Scouting", icon: "heart", body: "Sfoglia i player con lo swipe, filtra per ruolo e confrontali sul radar." },
++  { to: "/tactics", name: "Tattiche", icon: "map", body: "Lavagna sulla Rift con frame animati e sessioni live coach → player." },
++  { to: "/draft", name: "Draft", icon: "crosshair", body: "Simula pick e ban e ricevi suggerimenti sulla composizione." },
++  { to: "/vod", name: "VOD review", icon: "video", body: "Commenti a timestamp, filtri per categoria e report generato dall'AI." },
++  { to: "/coaching", name: "Coaching", icon: "clipboard-list", body: "Sessioni, homework e action item per ogni giocatore." },
++  { ext: FANTALOL, name: "FantaLol", icon: "gamepad-2", body: "La lega fantasy sui pro della stagione, da giocare con il team." },
+ ];
+ 
+-const NAV = ["Scrim", "Tornei", "Scouting", "Tattiche", "FantaLol"];
+-const RAIL = [
+-  { icon: "gamepad-2", label: "Home", active: true },
+-  { icon: "users", label: "Team", to: "/teams" },
+-  { icon: "message-square-more", label: "Chat", to: "/ai" },
+-  { icon: "calendar", label: "Calendario", to: "/scrims" },
++const WEEK = [
++  ["Lunedì", "Scrim contro un team del tuo livello, trovato in automatico."],
++  ["Martedì", "VOD review: il coach commenta i momenti chiave."],
++  ["Giovedì", "Lavagna tattica e draft per il prossimo avversario."],
++  ["Sabato", "Partita di torneo. Il bracket si aggiorna da solo."],
+ ];
+-const AUTOPLAY_MS = 6000;
+-
+-const openExternal = (url) => window.open(url, "_blank", "noopener,noreferrer");
+-const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+-
+-const display = (weight, size, lh = 1) => ({ margin: 0, font: `${weight} ${size}/${lh} var(--font-display)`, textTransform: "uppercase", letterSpacing: "-.01em", color: "var(--text-primary)" });
+-const script = (size, valign) => ({ font: `400 ${size} var(--font-script)`, textTransform: "none", verticalAlign: valign });
+-const body = { margin: 0, font: "500 15px/1.6 var(--font-body)", color: "var(--text-secondary)", textWrap: "pretty" };
+-const frame = { position: "relative", width: "100%", maxWidth: 1320, borderRadius: "var(--radius-lg)", background: "var(--surface-frame)", boxShadow: "var(--shadow-frame)", border: "1px solid var(--border-subtle)" };
+-
+-const WASH = {
+-  cyan: "radial-gradient(55% 65% at 75% 40%, rgba(31,143,196,.55), transparent 70%)",
+-  gold: "radial-gradient(55% 65% at 75% 40%, rgba(224,164,58,.38), transparent 70%)",
+-  magenta: "radial-gradient(55% 65% at 75% 40%, rgba(194,59,212,.45), transparent 70%)",
+-  violet: "radial-gradient(55% 65% at 75% 40%, rgba(122,58,168,.6), transparent 70%)",
+-};
+-const up = (ms, dur = 560) => ({ animation: `rhUp calc(var(--rh-k) * ${dur}ms) var(--ease-out) calc(var(--rh-k) * ${ms}ms) both` });
+-
+-function useWidth() {
+-  const [w, setW] = useState(window.innerWidth);
+-  useEffect(() => {
+-    const onResize = () => setW(window.innerWidth);
+-    window.addEventListener("resize", onResize);
+-    return () => window.removeEventListener("resize", onResize);
+-  }, []);
+-  return w;
+-}
+ 
+-function SignInDialog({ open, onClose }) {
+-  const { login } = useAuth();
+-  const navigate = useNavigate();
+-  const [email, setEmail] = useState("");
+-  const [pw, setPw] = useState("");
+-  const [err, setErr] = useState("");
+-  const [busy, setBusy] = useState(false);
+-
+-  const submit = async (e) => {
+-    e.preventDefault();
+-    if (!email || !pw) return setErr("Inserisci email e password");
+-    setBusy(true);
+-    setErr("");
+-    try {
+-      await login(email, pw);
+-      navigate("/dashboard");
+-    } catch (ex) {
+-      setErr(ex.response?.status === 401 ? "Credenziali non valide." : errMsg(ex));
+-      setBusy(false);
+-    }
++function TiltMap({ highlight, onRole }) {
++  const reduce = useReducedMotion();
++  const mx = useMotionValue(0), my = useMotionValue(0);
++  const rx = useSpring(useTransform(my, [-0.5, 0.5], [9, -9]), { stiffness: 120, damping: 18 });
++  const ry = useSpring(useTransform(mx, [-0.5, 0.5], [-11, 11]), { stiffness: 120, damping: 18 });
++  const move = (e) => {
++    if (reduce) return;
++    const r = e.currentTarget.getBoundingClientRect();
++    mx.set((e.clientX - r.left) / r.width - 0.5);
++    my.set((e.clientY - r.top) / r.height - 0.5);
+   };
+-
+   return (
+-    <Dialog open={open} onClose={onClose} eyebrow="Benvenuto" title="Accedi" width={420}>
+-      <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+-        <Input label="Email" icon="mail" type="email" autoComplete="email" placeholder="nome@team.gg" value={email} onChange={(e) => setEmail(e.target.value)} />
+-        <Input label="Password" icon="lock" type="password" autoComplete="current-password" placeholder="••••••••" value={pw} onChange={(e) => setPw(e.target.value)} error={err} />
+-        <Button type="submit" fullWidth disabled={busy} style={{ marginTop: 4 }}>{busy ? "Accesso..." : "Accedi"}</Button>
+-        <a href="/register" onClick={(e) => { e.preventDefault(); navigate("/register"); }} style={{ alignSelf: "center", fontSize: 13, color: "var(--cyan-400)" }}>
+-          Non hai un account? Registrati
+-        </a>
+-      </form>
+-    </Dialog>
++    <div onPointerMove={move} onPointerLeave={() => { mx.set(0); my.set(0); }} style={{ perspective: 1400 }} className="w-full">
++      <motion.div style={{ rotateX: rx, rotateY: ry, transformStyle: "preserve-3d" }}
++        initial={{ opacity: 0, scale: 0.9, clipPath: "circle(0% at 0% 100%)" }}
++        animate={{ opacity: 1, scale: 1, clipPath: "circle(150% at 0% 100%)", transitionEnd: { clipPath: "none" } }}
++        transition={{ duration: 1.2, ease: EASE, delay: 0.25 }}
++        className="relative mx-auto aspect-square w-full max-w-[640px]">
++        {/* alone sotto la mappa */}
++        <div aria-hidden="true" className="absolute -inset-[6%] -z-[1] rounded-[40px]" style={{ background: "radial-gradient(50% 50% at 50% 55%, rgba(255,107,26,.28), transparent 70%)", filter: "blur(20px)" }} />
++        <div className="h-full w-full overflow-hidden rounded-[22px]" style={{ border: "1px solid rgba(255,150,80,.28)", boxShadow: "0 50px 120px -30px rgba(0,0,0,.95), 0 0 0 6px rgba(255,107,26,.05)" }}>
++          <LiveRift highlight={highlight} onRole={onRole} className="block h-full w-full" />
++        </div>
++      </motion.div>
++    </div>
+   );
+ }
+ 
+ export default function Home() {
+   const { user } = useAuth();
+   const navigate = useNavigate();
+-  const w = useWidth();
+-  const [i, setI] = useState(0);
+-  const [signIn, setSignIn] = useState(false);
+-  const [tick, setTick] = useState(0); // bumping restarts the autoplay timer after a manual pick
+-  const m = MODS[i];
+-  const narrow = w < 760;
+-
+-  useEffect(() => {
+-    if (signIn) return undefined;
+-    const t = setInterval(() => setI((x) => (x + 1) % MODS.length), AUTOPLAY_MS);
+-    return () => clearInterval(t);
+-  }, [signIn, tick]);
+-
+-  const sel = (j, top) => { setI(j); setTick((t) => t + 1); if (top) scrollTop(); };
+-  const go = (mod) => (mod.ext ? openExternal(mod.ext) : sel(MODS.indexOf(mod), true));
+-  const cta = (mod) => (mod.ext ? openExternal(mod.ext) : user ? navigate(mod.to) : setSignIn(true));
+-  const closeSignIn = useCallback(() => setSignIn(false), []);
+-
+-  const shown = Array.from({ length: w < 1180 ? 2 : 3 }, (_, k) => (i + k) % MODS.length);
+-
+-  const navActions = user ? (
+-    <button type="button" onClick={() => navigate("/dashboard")} style={{ display: "flex", alignItems: "center", gap: 10, background: "none", border: "none", cursor: "pointer", color: "var(--ink-0)", font: "800 11px var(--font-display)", letterSpacing: ".14em", textTransform: "uppercase" }}>
+-      <span style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--grad-tint-cyan)", border: "1px solid var(--cyan-400)" }} />
+-      {user.display_name || user.username}
+-    </button>
+-  ) : <Button variant="outline" size="sm" onClick={() => setSignIn(true)}>Accedi</Button>;
++  const [role, setRole] = useState(null);
++  const tip = role ? ROLE_TIPS[role] : null;
++
++  const open = (m) => (m.ext ? window.open(m.ext, "_blank", "noopener,noreferrer") : navigate(user ? m.to : "/login"));
++  const line = (i) => ({ initial: { y: "105%" }, animate: { y: 0 }, transition: { duration: 0.9, ease: EASE, delay: 0.1 + i * 0.09 } });
+ 
+   return (
+-    <div style={{ position: "relative", minHeight: "100vh", background: "var(--grad-page)", padding: "clamp(16px,4vw,48px) clamp(12px,4vw,56px)", display: "flex", flexDirection: "column", alignItems: "center", gap: 40, overflow: "hidden", fontFamily: "var(--font-body)", color: "var(--text-primary)" }}>
+-      <Embers />
+-
+-      {/* Hero */}
+-      <section style={{ ...frame, height: narrow ? 720 : 780, overflow: "hidden", animation: "rhScale calc(var(--rh-k) * 700ms) var(--ease-out) both" }}>
+-        {/* ponytail: tinted washes stand in for the design's key-art image slot; drop an <img> here once art exists */}
+-        <div style={{ position: "absolute", inset: "-4%", animation: "rhDrift 22s ease-in-out infinite alternate" }}>
+-          {Object.entries(WASH).map(([t, bg]) => (
+-            <div key={t} style={{ position: "absolute", inset: 0, background: bg, opacity: m.tint === t ? 1 : 0, transition: "opacity calc(var(--rh-k) * 900ms) var(--ease-out)" }} />
+-          ))}
+-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(40% 50% at 88% 75%, rgba(31,143,196,.35), transparent 70%)" }} />
++    <div className="relative min-h-screen overflow-x-hidden">
++      <RiftBackground intensity="full" />
++
++      {/* barra superiore */}
++      <header className="relative z-10 mx-auto flex h-20 max-w-[1320px] items-center gap-6 px-5">
++        <Link to="/" aria-label="RiftHub"><Brand size={30} /></Link>
++        <nav className="ml-6 hidden gap-7 md:flex" style={{ font: "700 19px var(--font-display)" }}>
++          <a href="#moduli" style={{ color: "var(--sand)" }}>Funzionalità</a>
++          <a href="#settimana" style={{ color: "var(--sand)" }}>Come funziona</a>
++          <a href={FANTALOL} target="_blank" rel="noopener noreferrer" style={{ color: "var(--molten)" }}>FantaLol</a>
++        </nav>
++        <div className="ml-auto flex items-center gap-2.5">
++          {user ? (
++            <Button size="sm" trailingIcon="arrow-up-right" onClick={() => navigate("/dashboard")}>Apri la dashboard</Button>
++          ) : (
++            <>
++              <Button size="sm" variant="outline" onClick={() => navigate("/login")}>Accedi</Button>
++              <Button size="sm" onClick={() => navigate("/register")}>Registrati</Button>
++            </>
++          )}
+         </div>
+-        <div style={{ position: "absolute", inset: 0, background: "var(--grad-scrim-left)", pointerEvents: "none" }} />
+-        <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "45%", background: "var(--grad-scrim-bottom)", pointerEvents: "none" }} />
+-
+-        <div style={{ position: "absolute", left: 0, right: 0, top: 0, zIndex: 5, animation: "rhDown calc(var(--rh-k) * 600ms) var(--ease-out) calc(var(--rh-k) * 150ms) both" }}>
+-          <TopNav
+-            brand={<span onClick={scrollTop} style={{ cursor: "pointer" }}>RIFTHUB</span>}
+-            links={narrow ? [] : NAV.map((l) => ({ label: l, active: m.name === l }))}
+-            onSelect={(l) => go(MODS.find((x) => x.name === l.label))}
+-            actions={navActions}
+-          />
+-        </div>
+-        {!narrow && (
+-          <div style={{ position: "absolute", left: 0, top: "calc(50% - 110px)", zIndex: 5, animation: "rhFade calc(var(--rh-k) * 600ms) var(--ease-out) calc(var(--rh-k) * 300ms) both" }}>
+-            <SideRail items={RAIL} onSelect={(r) => r.to && navigate(r.to)} />
+-          </div>
+-        )}
+-
+-        <div style={{ position: "absolute", left: narrow ? 24 : "calc(var(--rail-width) + 48px)", top: narrow ? 120 : 180, width: narrow ? "calc(100% - 48px)" : "min(480px, calc(100% - var(--rail-width) - 96px))", zIndex: 4 }}>
+-          <div key={m.key + tick} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+-            <div style={{ alignSelf: "flex-start", ...up(0, 520) }}><Badge tone="cyan" dot>{"RiftHub · " + m.name}</Badge></div>
+-            <h1 style={{ ...display(900, "clamp(56px,7vw,96px)", 0.92), ...up(70, 620) }}>
+-              {m.a} <span style={{ ...script("clamp(42px,5.2vw,72px)", ".28em"), color: "var(--cyan-200)", textShadow: "var(--text-glow)" }}>{m.c}</span><br />{m.b}
+-            </h1>
+-            <p style={{ ...body, maxWidth: 380, ...up(150) }}>{m.body}</p>
+-            <div style={up(230)}><Button size="lg" trailingIcon={m.ext ? "arrow-up-right" : "play"} onClick={() => cta(m)}>{m.cta}</Button></div>
+-            {/* autoplay progress; restarts with the hero key */}
+-            <div style={{ width: 160, height: 2, borderRadius: 2, background: "rgba(255,255,255,.12)", overflow: "hidden" }}>
+-              <div style={{ height: "100%", background: "var(--cyan-400)", boxShadow: "0 0 8px var(--cyan-400)", transformOrigin: "left", animation: signIn ? "none" : `rhGrow ${AUTOPLAY_MS}ms linear both` }} />
++      </header>
++
++      {/* hero */}
++      <section className="relative z-[1] mx-auto grid max-w-[1320px] items-center gap-10 px-5 pb-16 pt-6 lg:min-h-[calc(100vh-80px)] lg:grid-cols-[1fr_1.05fr] lg:pb-10">
++        <div className="flex flex-col gap-7">
++          <h1 className="m-0" style={{ font: "900 clamp(64px,8.6vw,136px)/.84 var(--font-display)", letterSpacing: "-.01em", color: "var(--bone)" }}>
++            {["Prepara", "il team.", "Prendi", "la Rift."].map((w, i) => (
++              <span key={w} className="block overflow-hidden pb-[.04em]">
++                <motion.span className="block" {...line(i)} style={i > 1 ? { color: "var(--forge)" } : undefined}>{w}</motion.span>
++              </span>
++            ))}
++          </h1>
++          <motion.p className="m-0 max-w-[460px]" style={{ font: "400 19px/1.55 var(--font-body)", color: "var(--sand)" }}
++            initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: EASE, delay: 0.55 }}>
++            La piattaforma per team e accademie di League of Legends: scrim, tornei, scouting, tattiche e VOD review in un unico posto.
++          </motion.p>
++          <motion.div className="flex flex-wrap gap-3" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: EASE, delay: 0.65 }}>
++            <Button size="lg" trailingIcon="arrow-up-right" onClick={() => navigate(user ? "/teams" : "/register")}>Crea il tuo team</Button>
++            <Button size="lg" variant="outline" onClick={() => navigate(user ? "/scrims" : "/login")}>Cerca una scrim</Button>
++          </motion.div>
++
++          {/* selettore di ruolo: evidenzia le posizioni sulla mappa */}
++          <motion.div className="flex flex-col gap-3 pt-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 1.1 }}>
++            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Evidenzia un ruolo sulla mappa">
++              {ROLES.map((r) => {
++                const on = role === r.key;
++                return (
++                  <button key={r.key} type="button" aria-pressed={on}
++                    onMouseEnter={() => setRole(r.key)} onMouseLeave={() => setRole(null)} onFocus={() => setRole(r.key)} onBlur={() => setRole(null)}
++                    onClick={() => setRole(on ? null : r.key)}
++                    className="flex h-10 items-center gap-2 rounded-[6px] px-3.5 transition"
++                    style={{ font: "700 16px var(--font-display)", cursor: "pointer", color: on ? "#1a0a02" : "var(--sand)", background: on ? "var(--forge)" : "rgba(22,17,15,.7)", border: `1px solid ${on ? "var(--forge)" : "var(--border-subtle)"}` }}>
++                    <span className="grid h-5 w-5 place-items-center rounded-full text-[12px]" style={{ background: on ? "#1a0a02" : "var(--cinder)", color: on ? "var(--forge)" : "var(--molten)" }}>{r.key}</span>
++                    {r.name}
++                  </button>
++                );
++              })}
+             </div>
+-          </div>
++            <p className="m-0 min-h-[3em] max-w-[460px] text-[15px]" style={{ color: tip ? "var(--bone)" : "var(--smoke)", transition: "color 200ms" }} aria-live="polite">
++              {tip || "Scegli un ruolo, o un giocatore sulla mappa, per vedere come RiftHub lo aiuta."}
++            </p>
++          </motion.div>
+         </div>
+ 
+-        <div style={{ position: "absolute", right: narrow ? 24 : -60, bottom: 36, display: "flex", alignItems: "center", gap: 16, zIndex: 4 }}>
+-          <div style={{ display: "flex", flexDirection: narrow ? "row" : "column", gap: 8 }}>
+-            <IconButton icon="chevron-left" size={36} label="Precedente" onClick={() => sel((i + MODS.length - 1) % MODS.length)} />
+-            <IconButton icon="chevron-right" size={36} label="Successivo" onClick={() => sel((i + 1) % MODS.length)} />
+-          </div>
+-          {!narrow && shown.map((j, k) => (
+-            <div key={MODS[j].key + k} style={up(k * 90, 520)}>
+-              <HeroCard name={MODS[j].name} title={MODS[j].title} tint={MODS[j].tint} active={k === 0} width={200} height={260} onClick={() => sel(j)} />
+-            </div>
+-          ))}
+-        </div>
++        <TiltMap highlight={role} onRole={setRole} />
+       </section>
+ 
+-      {/* Moduli */}
+-      <section style={{ ...frame, padding: "clamp(32px,5vw,72px) clamp(20px,5vw,72px)", display: "flex", flexDirection: "column", gap: 48 }}>
+-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: 24 }}>
+-          <h2 style={display(900, "clamp(48px,6vw,72px)", 0.92)}>Una <span style={script("clamp(40px,5vw,60px)", ".2em")}>sola</span><br />base</h2>
+-          <p style={{ ...body, maxWidth: 380 }}>Scrim, tornei, scouting, tattiche e VOD review in un unico posto. Ogni ruolo del team trova il suo spazio, dal primo allenamento all&apos;ultima finale.</p>
++      {/* moduli: indice a due colonne, non una griglia di card */}
++      <section id="moduli" className="relative z-[1] mx-auto max-w-[1320px] px-5 py-24">
++        <div className="mb-12 flex flex-wrap items-end justify-between gap-6">
++          <h2 className="m-0" style={{ font: "900 clamp(44px,6vw,84px)/.9 var(--font-display)" }}>Tutto il lavoro<br />del team.</h2>
++          <p className="m-0 max-w-[380px] text-[17px]">Ogni ruolo trova il suo spazio: il manager organizza, il coach analizza, lo scout cerca, i player si allenano.</p>
+         </div>
+-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 16 }}>
+-          {MODS.map((x, j) => (
+-            <div key={x.key} style={up(80 + j * 60)}>
+-            <Card interactive glow={j === i} onClick={() => go(x)} style={{ height: "100%", boxSizing: "border-box" }}>
+-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+-                <Icon name={x.icon} size={24} color="var(--cyan-400)" />
+-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+-                  <div style={{ font: "800 13px var(--font-display)", letterSpacing: ".14em", textTransform: "uppercase" }}>{x.name}</div>
+-                  <div style={{ font: "500 13px var(--font-body)", color: "var(--text-muted)" }}>{x.title}</div>
+-                </div>
+-                <p style={{ ...body, fontSize: 14 }}>{x.short}</p>
+-              </div>
+-            </Card>
+-            </div>
++        <motion.ul className="m-0 grid list-none gap-x-10 p-0 md:grid-cols-2" initial="hidden" whileInView="show" viewport={{ once: true, margin: "-80px" }}
++          variants={{ show: { transition: { staggerChildren: 0.06 } } }}>
++          {MODS.map((m) => (
++            <motion.li key={m.name} variants={{ hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE } } }}>
++              <button type="button" onClick={() => open(m)} className="group relative flex w-full items-start gap-5 border-t py-6 text-left"
++                style={{ borderColor: "var(--border-subtle)", background: "none", cursor: "pointer", color: "inherit" }}>
++                <span aria-hidden="true" className="absolute left-0 top-[-1px] h-[2px] w-0 transition-all duration-500 group-hover:w-full" style={{ background: "var(--forge)", boxShadow: "0 0 14px var(--forge)" }} />
++                <span className="mt-1 grid h-11 w-11 flex-none place-items-center rounded-[8px] transition-colors duration-300 group-hover:bg-[color:var(--forge)] group-hover:text-[#1a0a02]"
++                  style={{ background: "var(--cinder)", color: "var(--forge)" }}><Icon name={m.icon} size={20} /></span>
++                <span className="flex min-w-0 flex-1 flex-col gap-1.5">
++                  <span className="transition-transform duration-300 group-hover:translate-x-1" style={{ font: "800 32px/1 var(--font-display)", color: "var(--bone)" }}>{m.name}</span>
++                  <span className="text-[16px]" style={{ color: "var(--sand)" }}>{m.body}</span>
++                </span>
++                <Icon name="arrow-up-right" size={22} color="var(--forge)" style={{ marginTop: 6, opacity: 0.5 }} />
++              </button>
++            </motion.li>
+           ))}
+-        </div>
++        </motion.ul>
++      </section>
+ 
+-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 32, paddingTop: 48, borderTop: "1px solid var(--border-subtle)" }}>
+-          <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 520 }}>
+-            <h2 style={display(900, "clamp(40px,5vw,56px)", 0.92)}>Pronto <span style={script("clamp(34px,4vw,46px)", ".18em")}>a</span> giocare</h2>
+-            <p style={body}>Crea il team in due minuti, invita i compagni e prenota la prima scrim già stasera.</p>
+-          </div>
+-          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
+-            <Button variant="outline" trailingIcon="arrow-up-right" onClick={() => openExternal(FANTALOL)}>Scopri FantaLol</Button>
+-            <Button size="lg" trailingIcon="play" onClick={() => (user ? navigate("/teams") : navigate("/register"))}>Crea il tuo team</Button>
++      {/* una settimana tipo: è davvero una sequenza, quindi la mostriamo come percorso */}
++      <section id="settimana" className="relative z-[1] mx-auto max-w-[1320px] px-5 pb-24">
++        <h2 className="m-0 mb-10" style={{ font: "900 clamp(36px,4.6vw,60px)/.95 var(--font-display)" }}>Una settimana su RiftHub</h2>
++        <ol className="relative m-0 grid list-none gap-8 p-0 md:grid-cols-4">
++          <span aria-hidden="true" className="absolute left-0 right-0 top-[9px] hidden h-[2px] md:block" style={{ background: "linear-gradient(90deg, var(--ice), var(--forge))", opacity: 0.6 }} />
++          {WEEK.map(([day, text], i) => (
++            <li key={day} className="relative flex flex-col gap-3">
++              <span className="relative h-5 w-5 rounded-full" style={{ background: i === WEEK.length - 1 ? "var(--forge)" : "var(--void)", border: "2px solid var(--forge)", boxShadow: "0 0 14px rgba(255,107,26,.5)" }} />
++              <span style={{ font: "800 26px/1 var(--font-display)", color: "var(--bone)" }}>{day}</span>
++              <span className="max-w-[260px] text-[16px]">{text}</span>
++            </li>
++          ))}
++        </ol>
++      </section>
++
++      {/* chiusura */}
++      <section className="relative z-[1] mx-auto max-w-[1320px] px-5 pb-16">
++        <div className="relative overflow-hidden rounded-[18px] px-8 py-14 md:px-14" style={{ background: "linear-gradient(115deg, #1a0d06 0%, #0c0908 55%)", border: "1px solid rgba(255,150,80,.22)" }}>
++          <div aria-hidden="true" className="absolute -right-20 -top-24 h-[420px] w-[420px] rounded-full" style={{ background: "radial-gradient(closest-side, rgba(255,107,26,.35), transparent)" }} />
++          <div className="relative flex flex-wrap items-end justify-between gap-8">
++            <div className="flex max-w-[560px] flex-col gap-3">
++              <h2 className="m-0" style={{ font: "900 clamp(40px,5vw,72px)/.9 var(--font-display)" }}>La prima scrim può essere stasera.</h2>
++              <p className="m-0 text-[17px]">Crea il team in due minuti, invita i compagni e lascia che RiftHub trovi l&apos;avversario.</p>
++            </div>
++            <div className="flex flex-wrap gap-3">
++              <Button size="lg" variant="outline" trailingIcon="arrow-up-right" onClick={() => window.open(FANTALOL, "_blank", "noopener,noreferrer")}>Scopri FantaLol</Button>
++              <Button size="lg" onClick={() => navigate(user ? "/teams" : "/register")}>Crea il tuo team</Button>
++            </div>
+           </div>
+         </div>
+       </section>
+ 
+-      <footer style={{ position: "relative", width: "100%", maxWidth: 1320, display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 12, padding: "0 8px 8px", font: "500 13px var(--font-body)", color: "var(--text-muted)" }}>
+-        <span style={{ font: "900 14px var(--font-display)", letterSpacing: ".14em", color: "var(--text-primary)" }}>RIFTHUB</span>
+-        <span>© 2026 RiftHub · Progetto indipendente, non affiliato a Riot Games.</span>
++      <footer className="relative z-[1] mx-auto flex max-w-[1320px] flex-wrap items-center justify-between gap-4 px-5 pb-10 text-[14px]" style={{ color: "var(--smoke)" }}>
++        <Brand size={22} />
++        <span>© 2026 RiftHub. Progetto indipendente, non affiliato a Riot Games. League of Legends è un marchio di Riot Games, Inc.</span>
+       </footer>
+-
+-      <SignInDialog open={signIn} onClose={closeSignIn} />
+     </div>
+   );
+ }
+diff --git a/frontend/src/pages/Scouting.jsx b/frontend/src/pages/Scouting.jsx
+index 554b4f6..1178d78 100644
+--- a/frontend/src/pages/Scouting.jsx
++++ b/frontend/src/pages/Scouting.jsx
+@@ -29,7 +29,7 @@ function LikedPlayers({ team }) {
+         {(list) => list.length ? (
+           <div className="flex max-h-[560px] flex-col gap-2 overflow-y-auto pr-1">
+             {list.map((c, i) => (
+-              <div key={c.id} className="flex items-center gap-3 rounded-xl px-3 py-2.5" style={{ background: "rgba(11,9,32,.45)", animation: `rhToastIn calc(var(--rh-k) * 420ms) var(--ease-out) calc(var(--rh-k) * ${Math.min(i, 8) * 60}ms) both` }}>
++              <div key={c.id} className="flex items-center gap-3 rounded-xl px-3 py-2.5" style={{ background: "rgba(12,9,8,.45)", animation: `rhToastIn calc(var(--rh-k) * 420ms) var(--ease-out) calc(var(--rh-k) * ${Math.min(i, 8) * 60}ms) both` }}>
+                 <span className="grid h-[34px] w-[34px] flex-none place-items-center rounded-full border border-magenta-light text-sm font-black" style={{ background: "var(--grad-tint-magenta)" }}>{c.nickname[0]}</span>
+                 <div className="flex min-w-0 flex-1 flex-col">
+                   <span className="flex items-center gap-1.5 truncate text-sm font-bold">{c.nickname} {c.liked_back && <Badge color="green">Match</Badge>}</span>
+diff --git a/frontend/src/pages/ScoutingBrowse.jsx b/frontend/src/pages/ScoutingBrowse.jsx
+index 579e3a8..237753f 100644
+--- a/frontend/src/pages/ScoutingBrowse.jsx
++++ b/frontend/src/pages/ScoutingBrowse.jsx
+@@ -164,7 +164,7 @@ export default function ScoutingBrowse() {
+               <div className="grid gap-4 md:grid-cols-2">
+                 <CompareRadar metrics={d.metrics} nameA={d.a.nickname} nameB={d.b.nickname} />
+                 <table className="w-full self-center text-sm">
+-                  <thead className="text-xs uppercase text-slate-400"><tr><th className="text-left">Metrica</th><th className="text-hex">{d.a.nickname}</th><th className="text-gold">{d.b.nickname}</th></tr></thead>
++                  <thead className="text-[13px] text-slate-400"><tr><th className="text-left">Metrica</th><th className="text-hex">{d.a.nickname}</th><th className="text-gold">{d.b.nickname}</th></tr></thead>
+                   <tbody>
+                     {d.metrics.map((m) => (
+                       <tr key={m.key} className="border-t border-slate-700/60 text-center">
+diff --git a/frontend/src/pages/Scrims.jsx b/frontend/src/pages/Scrims.jsx
+index 5c59896..8b4cd17 100644
+--- a/frontend/src/pages/Scrims.jsx
++++ b/frontend/src/pages/Scrims.jsx
+@@ -21,9 +21,9 @@ function Candidates({ data }) {
+     <div className="flex flex-col gap-3">
+       {data.map((c, i) => (
+         <div key={c.team_id} className="flex flex-col gap-3 rounded-[14px] border border-white/10 p-4 transition hover:border-hex/50"
+-          style={{ background: "rgba(11,9,32,.5)", ...up(120 + i * 110, 480) }}>
++          style={{ background: "rgba(12,9,8,.5)", ...up(120 + i * 110, 480) }}>
+           <div className="flex items-center justify-between gap-3">
+-            <span className="text-[15px] font-extrabold uppercase tracking-[.04em]">{c.team_name}</span>
++            <span className="text-[15px] font-display font-extrabold text-[19px]">{c.team_name}</span>
+             <span className="rh-mono text-[26px] font-bold text-hex" style={{ textShadow: "var(--text-glow)" }}>{c.score}<span className="text-xs text-slate-500">/100</span></span>
+           </div>
+           <ScoreBar value={c.score} delay={120 + i * 110} />
+@@ -57,11 +57,11 @@ function WeekCalendar({ scrims }) {
+           const today = isSameDay(d, new Date());
+           return (
+             <div key={d.toISOString()} className="flex min-h-24 flex-col gap-1.5 rounded-xl border p-2.5 transition-colors duration-300"
+-              style={{ borderColor: today ? "rgba(111,214,246,.6)" : "var(--border-subtle)", boxShadow: today ? "0 0 18px rgba(61,191,235,.2)" : "none" }}>
+-              <span className="text-[11px] font-extrabold uppercase tracking-[.1em] text-slate-400">{dayLabel(d)}</span>
++              style={{ borderColor: today ? "rgba(255,150,80,.6)" : "var(--border-subtle)", boxShadow: today ? "0 0 18px rgba(255,107,26,.2)" : "none" }}>
++              <span className="text-[13px] font-semibold text-slate-400">{dayLabel(d)}</span>
+               {scrims.filter((s) => isSameDay(new Date(s.scheduled_at), d)).map((s, j) => (
+                 <span key={s.id} className="rounded-lg px-2 py-1 text-[11px] font-semibold"
+-                  style={{ background: s.status === "PLAYED" ? "rgba(255,255,255,.07)" : "rgba(61,191,235,.16)", color: s.status === "PLAYED" ? "var(--ink-300)" : "var(--cyan-200)", animation: `rhPop calc(var(--rh-k) * 360ms) var(--ease-out) calc(var(--rh-k) * ${120 + n * 40 + j * 40}ms) both` }}>
++                  style={{ background: s.status === "PLAYED" ? "rgba(255,255,255,.07)" : "rgba(255,107,26,.16)", color: s.status === "PLAYED" ? "var(--ink-300)" : "var(--cyan-200)", animation: `rhPop calc(var(--rh-k) * 360ms) var(--ease-out) calc(var(--rh-k) * ${120 + n * 40 + j * 40}ms) both` }}>
+                   {format(new Date(s.scheduled_at), "HH:mm")} {s.team_a.tag} v {s.team_b.tag}
+                 </span>
+               ))}
+@@ -151,7 +151,7 @@ export default function Scrims() {
+                 {list.map((r, i) => {
+                   const [tone, txt] = REQ[r.status] || ["slate", label(r.status)];
+                   return (
+-                    <div key={r.id} className="flex flex-col gap-2.5 rounded-[14px] px-3.5 py-3" style={{ background: "rgba(11,9,32,.45)", ...up(160 + i * 60, 460) }}>
++                    <div key={r.id} className="flex flex-col gap-2.5 rounded-[14px] px-3.5 py-3" style={{ background: "rgba(12,9,8,.45)", ...up(160 + i * 60, 460) }}>
+                       <div className="flex flex-wrap items-center justify-between gap-2">
+                         <span className="text-sm font-semibold"><b>{r.format}</b> · {fmtDate(r.preferred_start)} · {r.desired_tier ? label(r.desired_tier) : "Stesso tier"}</span>
+                         <Badge color={tone} dot>{txt}</Badge>
+diff --git a/frontend/src/pages/TeamDetail.jsx b/frontend/src/pages/TeamDetail.jsx
+index e7f3bae..0f123b4 100644
+--- a/frontend/src/pages/TeamDetail.jsx
++++ b/frontend/src/pages/TeamDetail.jsx
+@@ -46,14 +46,14 @@ function AvailabilityGrid({ teamId, slots, editable }) {
+       <div className="flex flex-col gap-1.5">
+         {WEEKDAYS.map((dn, d) => (
+           <div key={dn} className="grid items-center gap-1.5" style={cols}>
+-            <span className="text-[11px] font-extrabold uppercase tracking-[.1em] text-slate-400">{dn}</span>
++            <span className="text-[13px] font-semibold text-slate-400">{dn}</span>
+             {HOURS.map((h) => {
+               const on = !!slotAt(slots, d, h);
+               return (
+                 <button key={h} type="button" aria-label={`${dn} ${h}:00`} aria-pressed={on} disabled={!editable || toggle.isPending}
+                   onClick={() => toggle.mutate({ day: d, h })}
+                   className="h-[30px] rounded-lg border transition-all duration-[260ms] enabled:cursor-pointer enabled:hover:border-hex/70 enabled:active:scale-90"
+-                  style={{ background: on ? "linear-gradient(135deg,#1f8fc4,#6fd6f6)" : "rgba(255,255,255,.04)", borderColor: on ? "rgba(191,255,254,.6)" : "var(--border-subtle)", boxShadow: on ? "0 0 14px rgba(61,191,235,.45)" : "none", transform: on ? "none" : "scale(.92)" }} />
++                  style={{ background: on ? "linear-gradient(135deg,#1f8fc4,#ff9a52)" : "rgba(255,255,255,.04)", borderColor: on ? "rgba(191,255,254,.6)" : "var(--border-subtle)", boxShadow: on ? "0 0 14px rgba(255,107,26,.45)" : "none", transform: on ? "none" : "scale(.92)" }} />
+               );
+             })}
+           </div>
+@@ -78,7 +78,7 @@ export default function TeamDetail() {
+     <QueryState query={team}>
+       {(t) => (
+         <div className="flex flex-col gap-5">
+-          <Link to="/teams" className="flex items-center gap-1.5 self-start text-[11px] font-extrabold uppercase tracking-[.14em] !text-slate-400 transition hover:-translate-x-1 hover:!text-white">
++          <Link to="/teams" className="flex items-center gap-1.5 self-start text-[13px] font-semibold !text-slate-400 transition hover:-translate-x-1 hover:!text-white">
+             <Icon name="chevron-left" size={14} />Team
+           </Link>
+           <PageHeader eyebrow={null} title={<>{t.name} <span className="text-hex" style={{ textShadow: "var(--text-glow)" }}>[{t.tag}]</span></>} subtitle={t.description}>
+diff --git a/frontend/src/pages/Teams.jsx b/frontend/src/pages/Teams.jsx
+index 1275546..4bacc86 100644
+--- a/frontend/src/pages/Teams.jsx
++++ b/frontend/src/pages/Teams.jsx
+@@ -58,13 +58,13 @@ export default function Teams() {
+           <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))" }}>
+             {list.map((t, i) => (
+               <Link key={t.id} to={`/teams/${t.id}`} style={up(80 + Math.min(i, 8) * 80, 560)}
+-                className="card group !p-0 overflow-hidden !text-white transition duration-200 hover:-translate-y-1 hover:border-hex/55 hover:shadow-[var(--shadow-card),0_0_24px_rgba(61,191,235,.25)]">
++                className="card group !p-0 overflow-hidden !text-white transition duration-200 hover:-translate-y-1 hover:border-hex/55 hover:shadow-[var(--shadow-card),0_0_24px_rgba(255,107,26,.25)]">
+                 <div className="relative h-[110px]" style={{ background: `var(--grad-tint-${TINTS[i % TINTS.length]})` }}>
+                   <div className="absolute inset-0" style={{ background: "var(--grad-scrim-bottom)" }} />
+                   <span className="absolute bottom-3 left-5 text-[44px] font-black leading-none tracking-[.02em]">{t.tag}</span>
+                 </div>
+                 <div className="flex flex-col gap-3 px-5 py-[18px]">
+-                  <span className="text-[15px] font-extrabold uppercase tracking-[.06em]">{t.name}</span>
++                  <span className="font-display text-[19px] font-extrabold">{t.name}</span>
+                   <div className="flex flex-wrap gap-1.5">
+                     <Badge color="hex">{t.region}</Badge>
+                     <Badge color="gold">{label(t.tier)}</Badge>
+diff --git a/frontend/src/pages/TournamentDetail.jsx b/frontend/src/pages/TournamentDetail.jsx
+index a03d789..138dbef 100644
+--- a/frontend/src/pages/TournamentDetail.jsx
++++ b/frontend/src/pages/TournamentDetail.jsx
+@@ -36,7 +36,7 @@ function Standings({ query }) {
+     <QueryState query={query}>
+       {(rows) => (
+         <table className="w-full text-sm">
+-          <thead className="text-left text-[11px] font-extrabold uppercase tracking-[.14em] text-slate-400">
++          <thead className="text-left text-[13px] font-semibold text-slate-400">
+             <tr><th className="py-1">#</th><th>Team</th><th>G</th><th>V</th><th>P</th><th>Diff</th><th>Punti</th></tr>
+           </thead>
+           <tbody>
+@@ -100,8 +100,8 @@ function RoundRobin({ matches, onMatchClick }) {
+   return (
+     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+       {rounds.map((r) => (
+-        <div key={r} className="rounded-xl p-3" style={{ background: "rgba(11,9,32,.45)" }}>
+-          <p className="mb-2 text-[11px] font-extrabold uppercase tracking-[.14em] text-gold">Giornata {r}</p>
++        <div key={r} className="rounded-xl p-3" style={{ background: "rgba(12,9,8,.45)" }}>
++          <p className="mb-2 text-[13px] font-semibold text-gold">Giornata {r}</p>
+           {matches.filter((m) => m.round === r).map((m) => (
+             <button key={m.id} type="button" disabled={!!m.winner || !onMatchClick} onClick={() => onMatchClick?.(m)}
+               className="mb-1 flex w-full justify-between rounded-lg px-2 py-1 text-left text-sm transition enabled:cursor-pointer enabled:hover:bg-white/5">
+@@ -138,7 +138,7 @@ export default function TournamentDetail() {
+         const pct = Math.min(100, (tour.entries.length / tour.max_teams) * 100);
+         return (
+         <div className="flex flex-col gap-5">
+-          <Link to="/tournaments" className="flex items-center gap-1.5 self-start text-[11px] font-extrabold uppercase tracking-[.14em] !text-slate-400 transition hover:-translate-x-1 hover:!text-white">
++          <Link to="/tournaments" className="flex items-center gap-1.5 self-start text-[13px] font-semibold !text-slate-400 transition hover:-translate-x-1 hover:!text-white">
+             <Icon name="chevron-left" size={14} />Tornei
+           </Link>
+           <PageHeader eyebrow={txt} tone={{ green: "success", slate: "neutral" }[tone] || tone} title={tour.name} subtitle={tour.description}>
+@@ -151,8 +151,8 @@ export default function TournamentDetail() {
+             )}
+           </PageHeader>
+           {tour.status === "FINISHED" && (
+-            <div className="card flex flex-wrap items-center justify-between gap-3 !border-gold/60" style={{ background: "linear-gradient(135deg,rgba(224,164,58,.14),var(--surface-glass))", animation: "rhScale calc(var(--rh-k) * 420ms) var(--ease-out) both" }}>
+-              <p className="m-0 flex items-center gap-2 text-lg font-extrabold uppercase tracking-[.04em] text-[var(--gold-300)]">
++            <div className="card flex flex-wrap items-center justify-between gap-3 !border-gold/60" style={{ background: "linear-gradient(135deg,rgba(255,181,71,.14),var(--surface-glass))", animation: "rhScale calc(var(--rh-k) * 420ms) var(--ease-out) both" }}>
++              <p className="m-0 flex items-center gap-2 text-lg font-display font-extrabold text-[19px] text-[var(--gold-300)]">
+                 <Icon name="trophy" size={24} color="var(--gold-500)" /> Torneo concluso{winner ? ` — vince ${winner}!` : ""}
+               </p>
+             </div>
+@@ -161,7 +161,7 @@ export default function TournamentDetail() {
+             <div className="flex max-w-[520px] flex-col gap-2">
+               <span className="text-xs font-semibold text-slate-400">{tour.entries.length}/{tour.max_teams} team iscritti</span>
+               <div className="h-2 overflow-hidden rounded-full bg-white/10">
+-                <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${pct}%`, background: "var(--grad-cta)", boxShadow: "0 0 12px rgba(61,191,235,.6)" }} />
++                <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${pct}%`, background: "var(--grad-cta)", boxShadow: "0 0 12px rgba(255,107,26,.6)" }} />
+               </div>
+             </div>
+           )}
+diff --git a/frontend/src/pages/Tournaments.jsx b/frontend/src/pages/Tournaments.jsx
+index efc185b..7f15b3c 100644
+--- a/frontend/src/pages/Tournaments.jsx
++++ b/frontend/src/pages/Tournaments.jsx
+@@ -37,7 +37,7 @@ export default function Tournaments() {
+                   <Card interactive glow={t.status === "RUNNING"} padding={20} onClick={() => navigate(`/tournaments/${t.id}`)} style={{ height: "100%", boxSizing: "border-box" }}>
+                     <div className="flex flex-col gap-3">
+                       <div className="self-start"><Badge color={tone} dot>{txt}</Badge></div>
+-                      <span className="text-base font-extrabold uppercase leading-tight tracking-[.04em]">{t.name}</span>
++                      <span className="font-display text-[22px] font-extrabold leading-tight">{t.name}</span>
+                       <span className="text-[13px] text-slate-400">
+                         {fmtDate(t.start_date, "d MMM yyyy")} · {t.format === "SINGLE_ELIM" ? "Eliminazione diretta" : "Round robin"} · {t.entries.length}/{t.max_teams} team
+                       </span>
+diff --git a/frontend/src/styles/ds.css b/frontend/src/styles/ds.css
+index 9d7f142..cf76fea 100644
+--- a/frontend/src/styles/ds.css
++++ b/frontend/src/styles/ds.css
+@@ -1,88 +1,132 @@
+-/* Gaming Design System tokens (imported from Claude Design: RiftHub Home). */
++/* ==========================================================================
++   RiftHub — "Forge" design system
++   Nero vulcanico + arancio forgia. Il blu (--ice) è riservato al lato blu
++   della mappa: è l'unico colore freddo del sistema.
++   ========================================================================== */
+ :root {
+-  /* Colors */
+-  --night-950:#0b0920;--night-900:#120f2e;--night-800:#19194d;--night-700:#241f5e;--night-600:#33276f;
+-  --violet-700:#3e1d63;--violet-600:#542273;--violet-500:#7a3aa8;--violet-400:#a26bd6;
+-  --cyan-600:#1f8fc4;--cyan-500:#3dbfeb;--cyan-400:#6fd6f6;--cyan-200:#bffffe;
+-  --blue-600:#3b5fc4;--blue-500:#4f7bdd;--blue-400:#7f9ef0;
+-  --magenta-700:#6a1452;--magenta-500:#c23bd4;--magenta-400:#e06be8;
+-  --ember-500:#ff7a45;--ember-300:#feb4a2;--gold-500:#e0a43a;--gold-300:#f6d38a;
+-  --ink-0:#ffffff;--ink-100:#e7deea;--ink-200:#c9c2d6;--ink-300:#a59fba;--ink-500:#757090;--ink-700:#3a3456;--ink-900:#16132c;
+-  --green-500:#3ee6a8;--red-500:#ff4d6d;--amber-500:#f2b84b;
++  /* --- Palette base ----------------------------------------------------- */
++  --void: #030202;          /* fondo pagina, nero puro scaldato appena   */
++  --obsidian: #0c0908;      /* superfici profonde (input, righe)         */
++  --basalt: #16110f;        /* card e pannelli                           */
++  --cinder: #221a16;        /* hover, superfici rialzate                 */
++  --ash: #3a2e27;           /* bordi                                      */
++  --smoke: #8a7b70;         /* testo secondario muto                      */
++  --sand: #c9bcb0;          /* testo secondario                           */
++  --bone: #f4ece3;          /* testo primario (bianco caldo)              */
+ 
+-  --surface-page:var(--night-800);
+-  --surface-frame:var(--night-950);
+-  --surface-glass:rgba(18,15,46,.55);
+-  --surface-glass-strong:rgba(18,15,46,.82);
+-  --surface-raised:rgba(255,255,255,.06);
+-  --surface-hover:rgba(255,255,255,.10);
+-  --surface-input:rgba(11,9,32,.6);
+-  --border-subtle:rgba(255,255,255,.12);
+-  --border-strong:rgba(255,255,255,.45);
+-  --text-primary:var(--ink-0);
+-  --text-secondary:var(--ink-200);
+-  --text-muted:var(--ink-300);
++  --forge: #ff6b1a;         /* ARANCIO primario                           */
++  --forge-deep: #c2410c;    /* arancio scuro, pressed / bordi attivi      */
++  --forge-dim: #5c2208;     /* arancio bruciato, sfondi tinti             */
++  --molten: #ffb547;        /* oro fuso, highlight caldi e ricompense     */
++  --ice: #5aa9ff;           /* lato blu (team BLUE) — uso parsimonioso    */
++  --ice-deep: #1d4f8f;
+ 
+-  --grad-cta:linear-gradient(90deg,#3dbfeb 0%,#9ff3fb 38%,#6fa3ee 70%,#4f7bdd 100%);
+-  --grad-page:radial-gradient(120% 80% at 50% 0%,#542273 0%,#2a1d5c 40%,#19194d 75%,#120f2e 100%);
+-  --grad-scrim-left:linear-gradient(90deg,rgba(11,9,32,.92) 0%,rgba(11,9,32,.55) 40%,rgba(11,9,32,0) 70%);
+-  --grad-scrim-bottom:linear-gradient(0deg,rgba(11,9,32,.95) 0%,rgba(11,9,32,0) 60%);
+-  --grad-tint-magenta:linear-gradient(135deg,#6a1452 0%,#400b2d 55%,#e0a43a 140%);
+-  --grad-tint-cyan:linear-gradient(135deg,#012d4f 0%,#1f8fc4 100%);
+-  --grad-tint-violet:linear-gradient(135deg,#241f5e 0%,#7a3aa8 100%);
+-  --grad-tint-gold:linear-gradient(135deg,#3b220b 0%,#e0a43a 120%);
++  --ok: #6fd99b;            /* successo                                   */
++  --warn: #ffc24a;          /* avviso                                     */
++  --danger: #ff4b3e;        /* errore                                     */
+ 
+-  /* Typography */
+-  --font-display:'Urbanist','Gilroy',system-ui,sans-serif;
+-  --font-body:'Urbanist','Gilroy',system-ui,sans-serif;
+-  --font-script:'Yellowtail','Brush Script MT',cursive;
+-  --ls-label:.14em;
++  /* --- Ruoli semantici ------------------------------------------------- */
++  --surface-page: var(--void);
++  --surface-frame: var(--obsidian);
++  --surface-glass: rgba(22,17,15,.72);
++  --surface-glass-strong: rgba(14,10,9,.92);
++  --surface-raised: rgba(255,240,225,.04);
++  --surface-hover: rgba(255,240,225,.08);
++  --surface-input: rgba(8,6,5,.75);
++  --border-subtle: rgba(255,200,160,.11);
++  --border-strong: rgba(255,200,160,.32);
++  --border-hot: rgba(255,107,26,.55);
++  --text-primary: var(--bone);
++  --text-secondary: var(--sand);
++  --text-muted: var(--smoke);
+ 
+-  /* Spacing & shape */
+-  --radius-xs:6px;--radius-sm:10px;--radius-md:14px;--radius-lg:20px;--radius-xl:28px;--radius-pill:999px;
+-  --rail-width:72px;--nav-height:88px;
++  --grad-cta: linear-gradient(100deg, #ff5a0a 0%, #ff7a24 55%, #ffa23d 100%);
++  --grad-heat: linear-gradient(180deg, rgba(255,107,26,.16), rgba(255,107,26,0) 70%);
++  --grad-page: radial-gradient(90% 60% at 85% -10%, rgba(255,107,26,.10), transparent 60%), var(--void);
+ 
+-  /* Effects */
+-  --shadow-card:0 12px 32px rgba(5,3,20,.5);
+-  --shadow-frame:0 40px 100px rgba(5,3,20,.7);
+-  --glow-cyan:0 0 0 1px rgba(111,214,246,.6),0 0 24px rgba(61,191,235,.45);
+-  --glow-cta:0 8px 28px rgba(61,191,235,.45),inset 0 1px 0 rgba(255,255,255,.5);
+-  --text-glow:0 0 18px rgba(127,227,255,.55);
+-  --blur-glass:blur(16px);
+-  --ease-out:cubic-bezier(.2,.8,.2,1);
+-  --dur-fast:150ms;--dur-base:250ms;--dur-slow:450ms;
++  /* --- Tipografia ------------------------------------------------------ */
++  --font-display: 'Big Shoulders Display', 'Oswald', 'Arial Narrow', sans-serif;
++  --font-body: 'Barlow', 'Segoe UI', system-ui, sans-serif;
++  --font-mono: 'Barlow', system-ui, sans-serif; /* numeri: tabular-nums */
++
++  /* --- Forma & spazi --------------------------------------------------- */
++  --radius-xs: 3px; --radius-sm: 5px; --radius-md: 8px; --radius-lg: 12px; --radius-xl: 16px; --radius-pill: 999px;
++  --nav-height: 64px;
++
++  /* --- Effetti --------------------------------------------------------- */
++  --shadow-card: 0 1px 0 rgba(255,220,190,.04) inset, 0 18px 40px -18px rgba(0,0,0,.9);
++  --shadow-frame: 0 40px 120px -20px rgba(0,0,0,.95);
++  --glow-forge: 0 0 0 1px rgba(255,107,26,.6), 0 0 28px rgba(255,107,26,.35);
++  --glow-cta: 0 10px 30px -8px rgba(255,107,26,.7), inset 0 1px 0 rgba(255,230,200,.45);
++  --text-glow: 0 0 22px rgba(255,107,26,.55);
++  --blur-glass: blur(14px) saturate(1.1);
++
++  /* --- Motion ---------------------------------------------------------- */
++  --rh-k: 1;                                  /* scala globale durate */
++  --ease-out: cubic-bezier(.16,1,.3,1);
++  --ease-in-out: cubic-bezier(.76,0,.24,1);
++  --dur-fast: 140ms; --dur-base: 240ms; --dur-slow: 520ms;
++
++  /* --- Alias legacy: le pagine esistenti usano ancora questi nomi ------- */
++  --cyan-200: var(--molten); --cyan-400: var(--forge); --cyan-500: var(--forge); --cyan-600: var(--forge-deep);
++  --gold-300: var(--molten); --gold-500: var(--molten);
++  --magenta-400: #ff8a5c; --magenta-500: #ff5a36;
++  --violet-400: var(--sand); --violet-500: var(--ash);
++  --ember-300: var(--molten); --ember-500: var(--forge);
++  --green-500: var(--ok); --red-500: var(--danger); --amber-500: var(--warn);
++  --ink-0: var(--bone); --ink-100: #e6dbd0; --ink-200: var(--sand); --ink-300: var(--smoke); --ink-500: #6a5d54; --ink-700: var(--ash); --ink-900: var(--basalt);
++  --grad-tint-cyan: linear-gradient(135deg, #3a1505 0%, #ff6b1a 140%);
++  --grad-tint-gold: linear-gradient(135deg, #2a1a06 0%, #ffb547 140%);
++  --grad-tint-magenta: linear-gradient(135deg, #2b0d08 0%, #ff4b3e 150%);
++  --grad-tint-violet: linear-gradient(135deg, #15100e 0%, #5c2208 120%);
++  --grad-scrim-bottom: linear-gradient(0deg, rgba(3,2,2,.95) 0%, rgba(3,2,2,0) 60%);
++  --grad-scrim-left: linear-gradient(90deg, rgba(3,2,2,.92) 0%, rgba(3,2,2,0) 70%);
++  --font-script: var(--font-display);
++  --ls-label: .04em;
+ }
+ 
+-/* Motion from the "RiftHub Prototype" design. --rh-k scales every duration. */
+-:root { --rh-k: 1; --font-mono: 'JetBrains Mono', ui-monospace, monospace; }
+-a { color: var(--cyan-400); text-decoration: none; }
+-a:hover { color: var(--cyan-200); }
+-@keyframes rhUp { from { opacity: 0; transform: translateY(16px) } to { opacity: 1; transform: none } }
+-@keyframes rhDown { from { opacity: 0; transform: translateY(-12px) } to { opacity: 1; transform: none } }
+-@keyframes rhPage { from { opacity: 0; transform: translateY(24px) scale(.985); filter: blur(4px) } to { opacity: 1; transform: none; filter: none } }
++::selection { background: var(--forge); color: var(--void); }
++a { color: var(--forge); text-decoration: none; transition: color var(--dur-fast); }
++a:hover { color: var(--molten); }
++:focus-visible { outline: 2px solid var(--forge); outline-offset: 2px; border-radius: 4px; }
++
++/* --- Keyframes -------------------------------------------------------- */
++@keyframes rhUp { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: none } }
++@keyframes rhDown { from { opacity: 0; transform: translateY(-10px) } to { opacity: 1; transform: none } }
+ @keyframes rhFade { from { opacity: 0 } to { opacity: 1 } }
+ @keyframes rhScale { from { opacity: 0; transform: scale(.97) } to { opacity: 1; transform: none } }
+-@keyframes rhPop { from { opacity: 0; transform: scale(.7) } to { opacity: 1; transform: none } }
+-@keyframes rhModalIn { from { opacity: 0; transform: translateY(18px) scale(.96) } to { opacity: 1; transform: none } }
++@keyframes rhPop { from { opacity: 0; transform: scale(.6) } to { opacity: 1; transform: none } }
++@keyframes rhModalIn { from { opacity: 0; transform: translateY(16px) scale(.97); clip-path: inset(0 0 100% 0) } to { opacity: 1; transform: none; clip-path: inset(0) } }
+ @keyframes rhToastIn { from { opacity: 0; transform: translateX(28px) } to { opacity: 1; transform: none } }
+ @keyframes rhToastOut { from { opacity: 1; transform: none } to { opacity: 0; transform: translateX(28px) } }
+ @keyframes rhShimmer { from { background-position: 200% 0 } to { background-position: -200% 0 } }
+ @keyframes rhDraw { from { stroke-dashoffset: 1 } to { stroke-dashoffset: 0 } }
+ @keyframes rhGrow { from { transform: scaleX(0) } to { transform: scaleX(1) } }
+-@keyframes rhEmber { 0% { transform: translateY(0); opacity: 0 } 15% { opacity: 1 } 100% { transform: translateY(-140px); opacity: 0 } }
+-@keyframes rhDrift { from { transform: scale(1.04) translate(0,0) } to { transform: scale(1.14) translate(-2%,-1.5%) } }
+-@keyframes rhPulse { 0%,100% { box-shadow: 0 0 0 1px rgba(111,214,246,.55),0 0 10px rgba(61,191,235,.2) } 50% { box-shadow: 0 0 0 1px rgba(111,214,246,.95),0 0 26px rgba(61,191,235,.6) } }
++@keyframes rhPage { from { opacity: 0; transform: translateY(18px) } to { opacity: 1; transform: none } }
++@keyframes rhPulse { 0%,100% { box-shadow: 0 0 0 1px rgba(255,107,26,.5), 0 0 8px rgba(255,107,26,.2) } 50% { box-shadow: 0 0 0 1px rgba(255,107,26,.95), 0 0 26px rgba(255,107,26,.55) } }
+ @keyframes rhFly { from { transform: var(--from); opacity: 1 } to { transform: var(--to); opacity: 0 } }
+-@keyframes rhShake2 { 0%,100% { transform: none } 20% { transform: translateX(-8px) } 40% { transform: translateX(7px) } 60% { transform: translateX(-5px) } 80% { transform: translateX(3px) } }
+ @keyframes rhShake { 0%,100% { transform: none } 20% { transform: translateX(-8px) } 40% { transform: translateX(7px) } 60% { transform: translateX(-5px) } 80% { transform: translateX(3px) } }
++@keyframes rhShake2 { 0%,100% { transform: none } 20% { transform: translateX(-8px) } 40% { transform: translateX(7px) } 60% { transform: translateX(-5px) } 80% { transform: translateX(3px) } }
++@keyframes rhVision { 0%,100% { opacity: .55; transform: scale(1) } 50% { opacity: .9; transform: scale(1.06) } }
++@keyframes rhPing { 0% { transform: scale(1); opacity: .8 } 100% { transform: scale(2.6); opacity: 0 } }
++@keyframes rhDash { to { stroke-dashoffset: -40 } }
++@keyframes rhFlow { to { stroke-dashoffset: -24 } }
+ 
++/* --- Utility ---------------------------------------------------------- */
+ .rh-up { animation: rhUp calc(var(--rh-k) * 520ms) var(--ease-out) both; }
+-.rh-skel { background: linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.11) 50%,rgba(255,255,255,.04) 75%); background-size: 200% 100%; animation: rhShimmer 1.3s linear infinite; }
+-.rh-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: 12px; background: rgba(11,9,32,.45); font: 600 14px var(--font-body); transition: background 150ms, border-color 200ms, transform 200ms var(--ease-out); }
++.rh-skel { background: linear-gradient(90deg, rgba(255,200,160,.04) 25%, rgba(255,140,60,.12) 50%, rgba(255,200,160,.04) 75%); background-size: 200% 100%; animation: rhShimmer 1.4s linear infinite; }
++.rh-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: var(--radius-md); background: rgba(12,9,8,.7); border: 1px solid transparent; font: 500 15px var(--font-body); transition: background 150ms, border-color 200ms, transform 200ms var(--ease-out); }
+ a.rh-row, button.rh-row { color: inherit; cursor: pointer; }
+-a.rh-row:hover, button.rh-row:hover { background: rgba(255,255,255,.07); }
+-.rh-mono { font-family: var(--font-mono); }
++a.rh-row:hover, button.rh-row:hover { background: var(--cinder); border-color: rgba(255,107,26,.35); }
++.rh-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+ .rh-nav { scrollbar-width: none; }
+ .rh-nav::-webkit-scrollbar { display: none; }
+ 
+-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important } }
++/* Scrollbar coerente col tema */
++* { scrollbar-color: var(--ash) transparent; scrollbar-width: thin; }
++*::-webkit-scrollbar { width: 10px; height: 10px; }
++*::-webkit-scrollbar-thumb { background: var(--ash); border-radius: 10px; border: 2px solid var(--void); }
++
++@media (prefers-reduced-motion: reduce) {
++  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
++}
+diff --git a/frontend/src/styles/index.css b/frontend/src/styles/index.css
+index d909dd0..07d7428 100644
+--- a/frontend/src/styles/index.css
++++ b/frontend/src/styles/index.css
+@@ -3,20 +3,37 @@
+ @tailwind utilities;
+ 
+ @layer base {
+-  body { @apply min-h-screen font-sans font-medium text-slate-200 antialiased; background: var(--grad-page) fixed; }
+-  h1, h2, h3 { @apply text-white; }
+-  select option { @apply bg-slate-900; }
++  html { background: var(--void); }
++  body { @apply min-h-screen antialiased; font: 400 16px/1.55 var(--font-body); color: var(--sand); background: var(--void); }
++  h1, h2, h3, h4 { color: var(--bone); font-family: var(--font-display); letter-spacing: .005em; }
++  select option { background: var(--obsidian); color: var(--bone); }
++  code { font-family: ui-monospace, monospace; font-size: .9em; color: var(--molten); }
+ }
+ 
+ @layer components {
+-  .card { @apply rounded-[20px] border border-white/10 p-5; background: var(--surface-glass); backdrop-filter: var(--blur-glass); box-shadow: var(--shadow-card); }
+-  .btn { @apply inline-flex h-9 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full px-[18px] text-[11px] font-extrabold uppercase tracking-[.14em] transition duration-200 active:scale-[.97] disabled:cursor-not-allowed disabled:opacity-40; }
+-  .btn-primary { @apply btn border border-white/35 text-white hover:brightness-110; background: var(--grad-cta); box-shadow: var(--glow-cta); text-shadow: 0 1px 6px rgba(20,40,110,.45); }
+-  .btn-gold { @apply btn border border-white/45 text-white hover:border-white hover:bg-white/10; }
++  /* Pannello: basalto con bordo caldo e un filo d'arancio in alto quando attivo */
++  .card {
++    @apply relative flex-col rounded-[12px] border p-5;
++    border-color: var(--border-subtle);
++    background: linear-gradient(180deg, rgba(34,26,22,.75), rgba(18,13,11,.78));
++    backdrop-filter: var(--blur-glass);
++    box-shadow: var(--shadow-card);
++    transition: border-color var(--dur-base) var(--ease-out);
++  }
++  .card:hover { border-color: rgba(255,170,110,.2); }
++
++  .btn { @apply inline-flex h-10 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-[6px] px-4 transition duration-200 active:scale-[.97] disabled:cursor-not-allowed disabled:opacity-40; font: 700 15px/1 var(--font-display); letter-spacing: .03em; }
++  .btn-primary { @apply btn text-[#1a0a02]; background: var(--grad-cta); box-shadow: var(--glow-cta); }
++  .btn-primary:hover { filter: brightness(1.08); }
++  .btn-gold { @apply btn border text-[color:var(--bone)]; border-color: var(--border-strong); }
++  .btn-gold:hover { border-color: var(--forge); color: var(--forge); background: rgba(255,107,26,.06); }
+   .btn-outline { @apply btn-gold; }
+-  .btn-ghost { @apply btn text-slate-200 hover:bg-white/10 hover:text-white; }
+-  .btn-danger { @apply btn border border-rose-400/50 bg-rose-500/15 text-rose-200 hover:bg-rose-500/30; }
+-  .input { @apply w-full rounded-[14px] border border-white/10 px-[18px] py-3 text-[15px] text-white placeholder-slate-500 transition focus:border-hex focus:outline-none focus:ring-[3px] focus:ring-hex-dark/20; background: var(--surface-input); }
+-  .label { @apply mb-1.5 block text-[10px] font-extrabold uppercase tracking-[.14em] text-slate-400; }
+-  .badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-[.12em]; }
++  .btn-ghost { @apply btn text-[color:var(--sand)] hover:bg-white/5 hover:text-[color:var(--bone)]; }
++  .btn-danger { @apply btn border; border-color: rgba(255,75,62,.5); background: rgba(255,75,62,.12); color: #ffb3a8; }
++  .btn-danger:hover { background: rgba(255,75,62,.22); }
++
++  .input { @apply w-full rounded-[8px] border px-4 py-2.5 text-[15px] transition placeholder:text-[color:var(--smoke)] focus:outline-none; color: var(--bone); border-color: var(--border-subtle); background: var(--surface-input); }
++  .input:focus { border-color: var(--forge); box-shadow: 0 0 0 3px rgba(255,107,26,.18); }
++  .label { @apply mb-1.5 block text-[13px] font-semibold; color: var(--smoke); }
++  .badge { @apply inline-flex items-center rounded-[4px] px-2 py-0.5 text-[12px] font-semibold; }
+ }
+diff --git a/frontend/src/test/app.test.jsx b/frontend/src/test/app.test.jsx
+index 9c58943..74c5966 100644
+--- a/frontend/src/test/app.test.jsx
++++ b/frontend/src/test/app.test.jsx
+@@ -19,7 +19,7 @@ beforeEach(() => localStorage.clear());
+ describe("App", () => {
+   it("renders and sends anonymous users to the public home", async () => {
+     render(<MemoryRouter initialEntries={["/"]}><App /></MemoryRouter>);
+-    expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent(/Trova.*scrim/);
++    expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent(/Prepara.*Rift/);
+   });
+ });
+ 
+@@ -86,13 +86,14 @@ describe("QueryState", () => {
+ });
+ 
+ describe("Home", () => {
+-  it("cycles the hero module and opens the sign-in dialog", async () => {
++  it("highlights a role on the map and sends anonymous users to the login page", async () => {
+     render(<MemoryRouter initialEntries={["/home"]}><App /></MemoryRouter>);
+-    expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent(/Trova.*scrim/);
+-    fireEvent.click(screen.getByRole("button", { name: "Successivo" }));
+-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/Conquista.*torneo/);
+-    fireEvent.click(screen.getByRole("button", { name: /Vedi i tornei/ }));
+-    expect(screen.getByRole("dialog", { name: "Accedi" })).toBeInTheDocument();
++    expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent(/Prepara.*Rift/);
++    fireEvent.click(screen.getByRole("button", { name: /Jungle/ }));
++    expect(screen.getByRole("button", { name: /Jungle/ })).toHaveAttribute("aria-pressed", "true");
++    expect(screen.getByText(/pathing della prima clear/)).toBeInTheDocument();
++    fireEvent.click(screen.getByRole("button", { name: "Cerca una scrim" }));
++    expect(await screen.findByRole("heading", { level: 1, name: "Bentornato" })).toBeInTheDocument();
+     fireEvent.click(screen.getAllByRole("button", { name: "Accedi" }).at(-1));
+     expect(await screen.findByRole("alert")).toHaveTextContent("Inserisci email e password");
+   });
+diff --git a/frontend/src/test/setup.js b/frontend/src/test/setup.js
+index fbc17b2..77d20d9 100644
+--- a/frontend/src/test/setup.js
++++ b/frontend/src/test/setup.js
+@@ -29,3 +29,13 @@ globalThis.PointerEvent ??= class PointerEvent extends MouseEvent {
+     this.pointerId = props.pointerId ?? 1;
+   }
+ };
++
++// motion/react usa IntersectionObserver (whileInView) e matchMedia (reduced motion): jsdom non li ha.
++globalThis.IntersectionObserver ??= class {
++  observe() {}
++  unobserve() {}
++  disconnect() {}
++};
++window.matchMedia ??= (query) => ({ matches: false, media: query, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} });
++// jsdom non implementa canvas: lo sfondo animato si disattiva da solo.
++HTMLCanvasElement.prototype.getContext = () => null;
+diff --git a/frontend/tailwind.config.js b/frontend/tailwind.config.js
+index 8d57f5e..40a992a 100644
+--- a/frontend/tailwind.config.js
++++ b/frontend/tailwind.config.js
+@@ -1,23 +1,30 @@
+ /** @type {import('tailwindcss').Config} */
+-// Palette remapped onto the Gaming Design System (src/styles/ds.css) so every page shares the Home look.
++// Palette "Forge" (src/styles/ds.css). I nomi storici (slate, hex, gold…) restano come chiavi
++// così le pagine esistenti ereditano il nuovo tema senza riscrivere ogni classe.
+ export default {
+   content: ["./index.html", "./src/**/*.{js,jsx}"],
+   theme: {
+     extend: {
+       colors: {
++        // scala di neri/grigi caldi
+         slate: {
+-          50: "#ffffff", 100: "#f3eef5", 200: "#e7deea", 300: "#c9c2d6", 400: "#a59fba", 500: "#757090",
+-          600: "#4a4370", 700: "#2e2866", 800: "#19194d", 900: "#120f2e", 950: "#0b0920",
++          50: "#fffaf4", 100: "#f4ece3", 200: "#e6dbd0", 300: "#c9bcb0", 400: "#a39286", 500: "#7d6e64",
++          600: "#544740", 700: "#3a2e27", 800: "#221a16", 900: "#16110f", 950: "#0c0908",
+         },
+-        hex: { DEFAULT: "#6fd6f6", dark: "#3dbfeb", deep: "#1f8fc4" },
+-        gold: { DEFAULT: "#e0a43a", light: "#ffffff", dark: "#3b220b" },
+-        violet: { DEFAULT: "#7a3aa8", light: "#a26bd6" },
+-        magenta: { DEFAULT: "#c23bd4", light: "#e06be8" },
++        // ex "hex" ciano → arancio forgia (colore primario)
++        hex: { DEFAULT: "#ff6b1a", dark: "#c2410c", deep: "#5c2208" },
++        forge: { DEFAULT: "#ff6b1a", deep: "#c2410c", dim: "#5c2208" },
++        gold: { DEFAULT: "#ffb547", light: "#ffe0a8", dark: "#3a2306" },
++        molten: { DEFAULT: "#ffb547" },
++        ice: { DEFAULT: "#5aa9ff", deep: "#1d4f8f" },
++        violet: { DEFAULT: "#5c2208", light: "#c9bcb0" },
++        magenta: { DEFAULT: "#ff5a36", light: "#ff8a5c" },
++        // sky = lato blu
++        sky: { 300: "#9ccaff", 400: "#5aa9ff", 500: "#3b82e0" },
+       },
+       fontFamily: {
+-        sans: ["Urbanist", "system-ui", "sans-serif"],
+-        display: ["Urbanist", "system-ui", "sans-serif"],
+-        script: ["Yellowtail", "cursive"],
++        sans: ["Barlow", "system-ui", "sans-serif"],
++        display: ["Big Shoulders Display", "Oswald", "sans-serif"],
+       },
+     },
+   },

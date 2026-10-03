@@ -21,9 +21,9 @@ function Candidates({ data }) {
     <div className="flex flex-col gap-3">
       {data.map((c, i) => (
         <div key={c.team_id} className="flex flex-col gap-3 rounded-[14px] border border-white/10 p-4 transition hover:border-hex/50"
-          style={{ background: "rgba(11,9,32,.5)", ...up(120 + i * 110, 480) }}>
+          style={{ background: "rgba(12,9,8,.5)", ...up(120 + i * 110, 480) }}>
           <div className="flex items-center justify-between gap-3">
-            <span className="text-[15px] font-extrabold uppercase tracking-[.04em]">{c.team_name}</span>
+            <span className="text-[15px] font-display font-extrabold text-[19px]">{c.team_name}</span>
             <span className="rh-mono text-[26px] font-bold text-hex" style={{ textShadow: "var(--text-glow)" }}>{c.score}<span className="text-xs text-slate-500">/100</span></span>
           </div>
           <ScoreBar value={c.score} delay={120 + i * 110} />
@@ -57,11 +57,11 @@ function WeekCalendar({ scrims }) {
           const today = isSameDay(d, new Date());
           return (
             <div key={d.toISOString()} className="flex min-h-24 flex-col gap-1.5 rounded-xl border p-2.5 transition-colors duration-300"
-              style={{ borderColor: today ? "rgba(111,214,246,.6)" : "var(--border-subtle)", boxShadow: today ? "0 0 18px rgba(61,191,235,.2)" : "none" }}>
-              <span className="text-[11px] font-extrabold uppercase tracking-[.1em] text-slate-400">{dayLabel(d)}</span>
+              style={{ borderColor: today ? "rgba(255,150,80,.6)" : "var(--border-subtle)", boxShadow: today ? "0 0 18px rgba(255,107,26,.2)" : "none" }}>
+              <span className="text-[13px] font-semibold text-slate-400">{dayLabel(d)}</span>
               {scrims.filter((s) => isSameDay(new Date(s.scheduled_at), d)).map((s, j) => (
                 <span key={s.id} className="rounded-lg px-2 py-1 text-[11px] font-semibold"
-                  style={{ background: s.status === "PLAYED" ? "rgba(255,255,255,.07)" : "rgba(61,191,235,.16)", color: s.status === "PLAYED" ? "var(--ink-300)" : "var(--cyan-200)", animation: `rhPop calc(var(--rh-k) * 360ms) var(--ease-out) calc(var(--rh-k) * ${120 + n * 40 + j * 40}ms) both` }}>
+                  style={{ background: s.status === "PLAYED" ? "rgba(255,255,255,.07)" : "rgba(255,107,26,.16)", color: s.status === "PLAYED" ? "var(--ink-300)" : "var(--cyan-200)", animation: `rhPop calc(var(--rh-k) * 360ms) var(--ease-out) calc(var(--rh-k) * ${120 + n * 40 + j * 40}ms) both` }}>
                   {format(new Date(s.scheduled_at), "HH:mm")} {s.team_a.tag} v {s.team_b.tag}
                 </span>
               ))}
@@ -151,7 +151,7 @@ export default function Scrims() {
                 {list.map((r, i) => {
                   const [tone, txt] = REQ[r.status] || ["slate", label(r.status)];
                   return (
-                    <div key={r.id} className="flex flex-col gap-2.5 rounded-[14px] px-3.5 py-3" style={{ background: "rgba(11,9,32,.45)", ...up(160 + i * 60, 460) }}>
+                    <div key={r.id} className="flex flex-col gap-2.5 rounded-[14px] px-3.5 py-3" style={{ background: "rgba(12,9,8,.45)", ...up(160 + i * 60, 460) }}>
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <span className="text-sm font-semibold"><b>{r.format}</b> · {fmtDate(r.preferred_start)} · {r.desired_tier ? label(r.desired_tier) : "Stesso tier"}</span>
                         <Badge color={tone} dot>{txt}</Badge>

@@ -60,12 +60,12 @@ function WinRateChart({ weekly }) {
     <>
       <svg viewBox="0 0 600 180" preserveAspectRatio="none" className="h-[180px] w-full overflow-visible">
         <defs>
-          <linearGradient id="rhArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3dbfeb" stopOpacity=".35" /><stop offset="1" stopColor="#3dbfeb" stopOpacity="0" /></linearGradient>
+          <linearGradient id="rhArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ff6b1a" stopOpacity=".35" /><stop offset="1" stopColor="#ff6b1a" stopOpacity="0" /></linearGradient>
         </defs>
         {[10, 85, 160].map((y) => <line key={y} x1="0" y1={y} x2="600" y2={y} stroke="rgba(255,255,255,.06)" />)}
         <path d={`${line} L${pts.at(-1)[0]},170 L${pts[0][0]},170 Z`} fill="url(#rhArea)" style={{ animation: "rhFade calc(var(--rh-k) * 900ms) ease calc(var(--rh-k) * 900ms) both" }} />
-        <path d={line} pathLength="1" fill="none" stroke="#6fd6f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"
-          style={{ strokeDasharray: 1, filter: "drop-shadow(0 0 6px rgba(61,191,235,.8))", animation: "rhDraw calc(var(--rh-k) * 1400ms) var(--ease-out) calc(var(--rh-k) * 400ms) both" }} />
+        <path d={line} pathLength="1" fill="none" stroke="#ff9a52" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"
+          style={{ strokeDasharray: 1, filter: "drop-shadow(0 0 6px rgba(255,107,26,.8))", animation: "rhDraw calc(var(--rh-k) * 1400ms) var(--ease-out) calc(var(--rh-k) * 400ms) both" }} />
       </svg>
       <div className="rh-mono flex justify-between text-[11px] font-semibold text-slate-500">{labels.map((l) => <span key={l}>{l}</span>)}</div>
     </>

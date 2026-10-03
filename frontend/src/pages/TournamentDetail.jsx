@@ -5,7 +5,7 @@ import { Link, useParams } from "react-router-dom";
 import api, { errMsg } from "../api/client";
 import Bracket from "../components/Bracket";
 import { Button, Icon } from "../components/ds";
-import { Badge, Card, Empty, Modal, PageHeader, QueryState, ResultPicker } from "../components/ui";
+import { Badge, Card, Confirm, Empty, Modal, PageHeader, QueryState, ResultPicker } from "../components/ui";
 import { STATUS } from "./Tournaments";
 import { label } from "../lib/format";
 import { useList } from "../lib/hooks";
@@ -36,7 +36,7 @@ function Standings({ query }) {
     <QueryState query={query}>
       {(rows) => (
         <table className="w-full text-sm">
-          <thead className="text-left text-[11px] font-extrabold uppercase tracking-[.14em] text-slate-400">
+          <thead className="text-left text-[13px] font-semibold text-slate-400">
             <tr><th className="py-1">#</th><th>Team</th><th>G</th><th>V</th><th>P</th><th>Diff</th><th>Punti</th></tr>
           </thead>
           <tbody>
@@ -100,8 +100,8 @@ function RoundRobin({ matches, onMatchClick }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {rounds.map((r) => (
-        <div key={r} className="rounded-xl p-3" style={{ background: "rgba(11,9,32,.45)" }}>
-          <p className="mb-2 text-[11px] font-extrabold uppercase tracking-[.14em] text-gold">Giornata {r}</p>
+        <div key={r} className="rounded-xl p-3" style={{ background: "rgba(12,9,8,.45)" }}>
+          <p className="mb-2 text-[13px] font-semibold text-gold">Giornata {r}</p>
           {matches.filter((m) => m.round === r).map((m) => (
             <button key={m.id} type="button" disabled={!!m.winner || !onMatchClick} onClick={() => onMatchClick?.(m)}
               className="mb-1 flex w-full justify-between rounded-lg px-2 py-1 text-left text-sm transition enabled:cursor-pointer enabled:hover:bg-white/5">
@@ -122,6 +122,7 @@ export default function TournamentDetail() {
   const bracket = useQuery({ queryKey: ["bracket", id], queryFn: () => api.get(`/tournaments/${id}/bracket/`).then((r) => r.data) });
   const standings = useQuery({ queryKey: ["standings", id], queryFn: () => api.get(`/tournaments/${id}/standings/`).then((r) => r.data) });
   const [editing, setEditing] = useState(null);
+  const [ask, setAsk] = useState(null);
   const refresh = () => ["tournament", "bracket", "standings", "tournaments"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
 
   const generate = useMutation({
@@ -138,7 +139,7 @@ export default function TournamentDetail() {
         const pct = Math.min(100, (tour.entries.length / tour.max_teams) * 100);
         return (
         <div className="flex flex-col gap-5">
-          <Link to="/tournaments" className="flex items-center gap-1.5 self-start text-[11px] font-extrabold uppercase tracking-[.14em] !text-slate-400 transition hover:-translate-x-1 hover:!text-white">
+          <Link to="/tournaments" className="flex items-center gap-1.5 self-start text-[13px] font-semibold !text-slate-400 transition hover:-translate-x-1 hover:!text-white">
             <Icon name="chevron-left" size={14} />Tornei
           </Link>
           <PageHeader eyebrow={txt} tone={{ green: "success", slate: "neutral" }[tone] || tone} title={tour.name} subtitle={tour.description}>
@@ -146,13 +147,15 @@ export default function TournamentDetail() {
             {winner && <div style={{ animation: "rhPop calc(var(--rh-k) * 420ms) var(--ease-out) both" }}><Badge color="gold" dot>Campione · {winner}</Badge></div>}
             {tour.can_edit && tour.status !== "FINISHED" && (
               <Button size="sm" onClick={() => {
-                if (!bracket.data?.length || window.confirm("Rigenerare il bracket? I risultati verranno persi.")) generate.mutate();
+                if (!bracket.data?.length) generate.mutate();
+                else setAsk({ title: "Rigenerare il bracket?", body: "Tutti i risultati inseriti finora verranno persi.", label: "Rigenera", danger: true, run: () => generate.mutate() });
               }} disabled={generate.isPending}>{bracket.data?.length ? "Rigenera bracket" : "Genera bracket"}</Button>
             )}
           </PageHeader>
+          <Confirm ask={ask} onClose={() => setAsk(null)} />
           {tour.status === "FINISHED" && (
-            <div className="card flex flex-wrap items-center justify-between gap-3 !border-gold/60" style={{ background: "linear-gradient(135deg,rgba(224,164,58,.14),var(--surface-glass))", animation: "rhScale calc(var(--rh-k) * 420ms) var(--ease-out) both" }}>
-              <p className="m-0 flex items-center gap-2 text-lg font-extrabold uppercase tracking-[.04em] text-[var(--gold-300)]">
+            <div className="card flex flex-wrap items-center justify-between gap-3 !border-gold/60" style={{ background: "linear-gradient(135deg,rgba(255,181,71,.14),var(--surface-glass))", animation: "rhScale calc(var(--rh-k) * 420ms) var(--ease-out) both" }}>
+              <p className="m-0 flex items-center gap-2 text-lg font-display font-extrabold text-[19px] text-[var(--gold-300)]">
                 <Icon name="trophy" size={24} color="var(--gold-500)" /> Torneo concluso{winner ? ` — vince ${winner}!` : ""}
               </p>
             </div>
@@ -161,7 +164,7 @@ export default function TournamentDetail() {
             <div className="flex max-w-[520px] flex-col gap-2">
               <span className="text-xs font-semibold text-slate-400">{tour.entries.length}/{tour.max_teams} team iscritti</span>
               <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${pct}%`, background: "var(--grad-cta)", boxShadow: "0 0 12px rgba(61,191,235,.6)" }} />
+                <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${pct}%`, background: "var(--grad-cta)", boxShadow: "0 0 12px rgba(255,107,26,.6)" }} />
               </div>
             </div>
           )}

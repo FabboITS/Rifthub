@@ -36,7 +36,7 @@ export default function Bracket({ matches, onMatchClick }) {
     <div className="overflow-x-auto pb-1.5">
       <div className="mb-2.5 flex" style={{ gap: GAP_X, width }}>
         {Array.from({ length: rounds }, (_, i) => (
-          <span key={i} className="flex-none text-center text-[11px] font-extrabold uppercase tracking-[.14em] text-gold" style={{ width: W }}>{roundName(i + 1)}</span>
+          <span key={i} className="flex-none text-center text-[13px] font-semibold text-gold" style={{ width: W }}>{roundName(i + 1)}</span>
         ))}
       </div>
       <div className="relative" style={{ width, height }}>
@@ -46,8 +46,8 @@ export default function Bracket({ matches, onMatchClick }) {
               style={{ strokeDasharray: 1, animation: `rhDraw ${k(700)} var(--ease-out) ${k(300 + m.round * 150)} both` }} />
           ))}
           {linked.filter((m) => m.winner).map((m) => (
-            <path key={`g${m.id}`} d={path(m)} pathLength="1" fill="none" stroke="#e0a43a" strokeWidth="2"
-              style={{ strokeDasharray: 1, filter: "drop-shadow(0 0 5px rgba(224,164,58,.7))", animation: `rhDraw ${k(800)} var(--ease-out) ${k(500)} both` }} />
+            <path key={`g${m.id}`} d={path(m)} pathLength="1" fill="none" stroke="#ffb547" strokeWidth="2"
+              style={{ strokeDasharray: 1, filter: "drop-shadow(0 0 5px rgba(255,181,71,.7))", animation: `rhDraw ${k(800)} var(--ease-out) ${k(500)} both` }} />
           ))}
         </svg>
         {matches.map((m) => {
@@ -58,7 +58,7 @@ export default function Bracket({ matches, onMatchClick }) {
           return (
             <button key={m.id} type="button" disabled={!playable} onClick={() => onMatchClick(m)}
               className="absolute flex flex-col justify-center gap-1 rounded-xl border py-1.5 text-left transition-colors enabled:cursor-pointer enabled:hover:bg-[rgba(36,31,94,.95)]"
-              style={{ left: x, top: y, width: W, height: H, background: "rgba(18,15,46,.9)", borderColor: playable ? "rgba(111,214,246,.6)" : "var(--border-subtle)", opacity: bye ? 0.5 : 1, animation: playable ? `rhPulse 2.4s ease-in-out infinite, ${enter}` : enter }}>
+              style={{ left: x, top: y, width: W, height: H, background: "rgba(22,17,15,.9)", borderColor: playable ? "rgba(255,150,80,.6)" : "var(--border-subtle)", opacity: bye ? 0.5 : 1, animation: playable ? `rhPulse 2.4s ease-in-out infinite, ${enter}` : enter }}>
               <TeamRow team={m.team_a} score={m.score_a} winner={m.winner && m.winner.id === m.team_a?.id} />
               <span className="h-px bg-white/10" />
               <TeamRow team={m.team_b} score={m.score_b} winner={m.winner && m.winner.id === m.team_b?.id} />
