@@ -10,6 +10,10 @@
 
 In più: **assistente AI agentico** con tool-calling sui dati reali (player, scrim, VOD) e **draft advisor**, su LLM locale (Ollama) o provider online.
 
+| Dashboard | Lavagna tattica | Torneo |
+|---|---|---|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Lavagna tattica](docs/screenshots/tactics-board.png) | ![Torneo](docs/screenshots/tournament.png) |
+
 ### Architettura
 
 ```mermaid
@@ -26,6 +30,8 @@ flowchart LR
     U -.->|IFrame API| YT[YouTube]
 ```
 
+Dettagli su servizi, healthcheck, avvio del backend e flusso AI in [docs/architecture.md](docs/architecture.md).
+
 ---
 
 ## Uso del repository
@@ -38,9 +44,13 @@ flowchart LR
 ### Setup rapido
 
 ```bash
+git clone https://github.com/FabboITS/Rifthub.git
+cd Rifthub
 cp .env.example .env
-docker compose up --build
+docker compose up --build        # oppure: make up (in background)
 ```
+
+Al primo avvio il backend applica le migrazioni e carica i dati demo; il frontend parte quando il backend è *healthy* (~1 min).
 
 | Servizio | URL |
 |---|---|
@@ -49,9 +59,11 @@ docker compose up --build
 | Swagger UI | http://localhost:8000/api/docs/ |
 | Schema OpenAPI | http://localhost:8000/api/schema/ |
 | Django admin | http://localhost:8000/admin/ (`admin@rifthub.dev`) |
-| Ollama | http://localhost:11434 |
+| Ollama | http://127.0.0.1:11434 (solo localhost) |
 
-Il compose funziona anche senza `.env` (valori di default), ma copiare `.env.example` è consigliato.
+Le porte si cambiano in `.env` (`FRONTEND_PORT`, `BACKEND_PORT`, `OLLAMA_PORT`). Il compose funziona anche senza `.env` (valori di default), ma copiare `.env.example` è consigliato.
+
+Scorciatoie nel `Makefile`: `make up`, `make down`, `make logs`, `make seed`, `make test`.
 
 ### Tempi e risorse
 
@@ -82,12 +94,14 @@ Password per tutti: **`Demo1234!`**
 5. **Tattiche** → apri "Invade lv1 (lato blu)" → sposta token, aggiungi ward/frecce/cerchi/testo, **Salva frame**, premi **▶** per animare i frame.
 6. **VOD** → "Scrim vs Aurora – G3" → clicca un commento per saltare al timestamp, aggiungi un commento al tempo corrente, **Genera report AI**. Il pannello **Replay overlay** mostra la lavagna collegata al tempo giusto.
 7. **Shadow session con due browser**: browser A come `coach@rifthub.dev` → Tattiche → "Shadow session aperte" → Entra; browser B (o finestra anonima) come `player@rifthub.dev` → stessa sessione. Il coach cambia frame o sposta token e salva: il player vede l'aggiornamento entro 2 s.
-8. **Assistente AI** → chiedi "Cercami dei support almeno Diamond in EUW che cercano team": la risposta mostra i **tool usati** con argomenti e risultato.
+8. **Assistente AI** → chiedi "Cercami dei support almeno Diamond in EUW che cercano team": la risposta mostra i **tool usati** con argomenti e risultato (nei dati demo la trova *Halo*, Diamond 2).
 
 ### Variabili d'ambiente
 
 | Variabile | Obbligatoria | Default | Descrizione |
 |---|---|---|---|
+| `FRONTEND_PORT` / `BACKEND_PORT` / `OLLAMA_PORT` | no | `5173` / `8000` / `11434` | Porte esposte sull'host (Ollama solo su 127.0.0.1) |
+| `LOG_LEVEL` | no | `INFO` | Livello di log del backend (`DEBUG`, `INFO`, `WARNING`, `ERROR`) |
 | `DJANGO_SECRET_KEY` | consigliata | casuale per processo | Chiave segreta Django (in produzione: stringa lunga e casuale) |
 | `DJANGO_DEBUG` | no | `0` | `1` solo in sviluppo |
 | `ALLOWED_HOSTS` | no | `localhost,127.0.0.1,backend` | Host accettati |
@@ -131,6 +145,8 @@ OPENROUTER_API_KEY=sk-or-...
 
 Ricorda di aggiornare anche `AI_MODEL` (o lasciarlo vuoto per il default del provider). Per un modello Ollama diverso, cambia `AI_MODEL` e riesegui `docker compose up -d ollama-init`. `AI_PROVIDER=fake` risponde offline con testi simulati (usato dai test, utile per demo senza LLM).
 
+**Affidabilità delle chiamate AI:** ogni chiamata ha il timeout `AI_TIMEOUT`; gli errori di connessione e le risposte 429/502/503/504 vengono ritentati fino a 3 volte (1 s, 3 s) da `post_with_retry` in `apps/ai/providers/base.py` (il provider Anthropic usa i retry integrati nell'SDK). I timeout non vengono ritentati per restare sotto il limite di 180 s di gunicorn. Se il provider resta irraggiungibile l'API risponde `503` con il motivo e l'errore finisce nei log del backend (`docker compose logs backend`).
+
 ### Riot API con chiave reale
 
 1. Crea una chiave su https://developer.riotgames.com. **Le development key scadono ogni 24 ore**: rigenerale dal portale.
@@ -162,7 +178,7 @@ Per usare Postgres locale esporta `POSTGRES_HOST=localhost` (più DB/USER/PASSWO
 
 ```bash
 # Backend (dalla cartella backend/)
-pytest                              # 50 test: matchmaking, bracket, scouting, permessi, agente AI...
+pytest                              # 58 test: matchmaking, bracket, scouting, permessi, agente AI...
 ruff check .
 python manage.py makemigrations --check --dry-run
 
@@ -177,6 +193,8 @@ docker compose exec backend python manage.py makemigrations
 docker compose exec backend python manage.py migrate
 docker compose config -q            # valida il compose
 ```
+
+**CI:** `.github/workflows/ci.yml` esegue a ogni push/PR su `main` ruff, il check delle migrazioni e pytest (backend), lint, vitest e build (frontend), e la build delle immagini Docker.
 
 **Reset del DB e re-seed:**
 
@@ -264,7 +282,8 @@ Tutto è protetto da JWT (`Authorization: Bearer <access>`) tranne `auth/registe
 
 | Problema | Soluzione |
 |---|---|
-| **Porte occupate** (5173, 8000, 5432 interna, 11434) | Libera la porta o cambia il mapping in `docker-compose.yml` (es. `"8080:80"`). Se hai un Ollama locale sulla 11434, fermalo o rimuovi il mapping `ports` del servizio `ollama`. |
+| **Porte occupate** (5173, 8000, 11434) | Cambia `FRONTEND_PORT`, `BACKEND_PORT` o `OLLAMA_PORT` in `.env` e rilancia `docker compose up -d`. Per far girare una seconda copia del progetto in parallelo usa anche un altro nome progetto: `COMPOSE_PROJECT_NAME=rifthub2 docker compose up -d`. |
+| **Frontend non parte / resta in "Waiting"** | Aspetta che il backend sia *healthy* (`docker compose ps`); se non lo diventa guarda `docker compose logs backend` (di solito DB o migrazioni). |
 | **Ollama lento / senza GPU** | Imposta `OLLAMA_NUM_THREAD` al numero di core "performance" della CPU (misura con diversi valori: su CPU ibride fa una differenza enorme), usa `llama3.2:3b`, aumenta `AI_TIMEOUT`, oppure passa a un provider online. Con GPU NVIDIA installa `nvidia-container-toolkit` e decommenta il blocco `deploy` del servizio `ollama`. |
 | **"Provider AI non raggiungibile"** | Il modello è ancora in download (`docker compose logs -f ollama-init`) o il provider non è configurato: controlla `GET /api/ai/status/`. |
 | **Errori CORS** | Usa il frontend su :5173 (le chiamate passano dal proxy nginx, stessa origine). Se servi il frontend da un'altra origine aggiungila a `CORS_ALLOWED_ORIGINS`. |
@@ -286,7 +305,8 @@ Tutto è protetto da JWT (`Authorization: Bearer <access>`) tranne `auth/registe
 - **Analisi AI multimodale dei VOD** (frame del video + trascrizione del voice comms).
 - Integrazione futura con **FantaLol** se esporrà delle API.
 - **App mobile** (React Native) per swipe e notifiche.
-- **CI/CD** (GitHub Actions: test, lint, build immagini) e **deploy in cloud** con HTTPS.
+- **CD** e **deploy in cloud** con HTTPS (la CI con test, lint e build c'è già).
+- Utente PostgreSQL applicativo **non superuser** separato dall'utente di bootstrap dell'immagine.
 
 ## Riferimenti utili
 
@@ -308,6 +328,10 @@ Tutto è protetto da JWT (`Authorization: Bearer <access>`) tranne `auth/registe
 - OpenRouter: https://openrouter.ai/docs
 - Dati competitivi: Leaguepedia (https://lol.fandom.com) e Oracle's Elixir (https://oracleselixir.com)
 - FantaLol: https://fantalol.win
+
+## Licenza
+
+[MIT](LICENSE).
 
 ## Disclaimer legale
 
