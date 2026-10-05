@@ -147,3 +147,46 @@ def test_status_ollama_unreachable(make_user, client_for, settings):
     settings.OLLAMA_BASE_URL = "http://127.0.0.1:1"
     res = client_for(make_user()).get("/api/ai/status/")
     assert res.data["provider"] == "ollama" and res.data["reachable"] is False
+
+
+class _Resp:
+    def __init__(self, status):
+        self.status_code, self.ok, self.text = status, status < 400, ""
+
+    def json(self):
+        return {"message": {"content": "ok"}}
+
+
+def test_ollama_retries_transient_errors(monkeypatch):
+    import requests
+
+    from apps.ai.providers import base
+    from apps.ai.providers.ollama import OllamaProvider
+
+    replies = [requests.ConnectionError("down"), _Resp(503), _Resp(200)]
+
+    def fake_post(*a, **kw):
+        r = replies.pop(0)
+        if isinstance(r, Exception):
+            raise r
+        return r
+
+    monkeypatch.setattr(base.requests, "post", fake_post)
+    monkeypatch.setattr(base.time, "sleep", lambda s: None)
+    assert OllamaProvider("http://x", model="m").chat([{"role": "user", "content": "hi"}]).content == "ok"
+    assert replies == []
+
+
+def test_ollama_gives_up_after_retries(monkeypatch):
+    import requests
+
+    from apps.ai.providers import base
+    from apps.ai.providers.ollama import OllamaProvider
+
+    def down(*a, **kw):
+        raise requests.ConnectionError("down")
+
+    monkeypatch.setattr(base.requests, "post", down)
+    monkeypatch.setattr(base.time, "sleep", lambda s: None)
+    with pytest.raises(ProviderError, match="non raggiungibile"):
+        OllamaProvider("http://x", model="m").chat([{"role": "user", "content": "hi"}])

@@ -1,3 +1,4 @@
+import logging
 import time
 import uuid
 
@@ -19,9 +20,11 @@ from .providers.base import ProviderError
 from .providers.factory import get_provider
 
 HISTORY_TURNS = 6
+log = logging.getLogger(__name__)
 
 
 def unavailable(e):
+    log.error("AI provider error: %s", e)
     return Response(
         {"detail": "Provider AI non raggiungibile", "error": str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE
     )

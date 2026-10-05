@@ -14,4 +14,4 @@ if [ "${SEED_DEMO:-0}" = "1" ]; then
 fi
 
 # --preload: settings caricati una volta sola, condivisi fra i worker
-exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 180 --preload
+exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 180 --preload --access-logfile -

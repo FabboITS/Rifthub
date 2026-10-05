@@ -1,6 +1,6 @@
 import requests
 
-from .base import LLMProvider, LLMResponse, ProviderError, ToolCall, ToolsNotSupported
+from .base import LLMProvider, LLMResponse, ProviderError, ToolCall, ToolsNotSupported, post_with_retry
 
 
 class OllamaProvider(LLMProvider):
@@ -34,7 +34,7 @@ class OllamaProvider(LLMProvider):
         if tools:
             payload["tools"] = tools
         try:
-            r = requests.post(f"{self.base_url}/api/chat", json=payload, timeout=self.timeout)
+            r = post_with_retry(self, f"{self.base_url}/api/chat", json=payload)
         except requests.RequestException as e:
             raise ProviderError(f"Ollama non raggiungibile: {e}") from e
         if r.status_code == 400 and "does not support tools" in r.text:

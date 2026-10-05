@@ -126,6 +126,16 @@ SPECTACULAR_SETTINGS = {
 
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {"plain": {"format": "%(asctime)s %(levelname)s %(name)s: %(message)s"}},
+    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "plain"}},
+    "root": {"handlers": ["console"], "level": os.environ.get("LOG_LEVEL", "INFO")},
+    # 4xx/5xx of every request (django.request) end up here too
+    "loggers": {"django": {"handlers": ["console"], "level": "INFO", "propagate": False}},
+}
+
 # AI
 AI_PROVIDER = os.environ.get("AI_PROVIDER", "ollama").lower()
 AI_MODEL = os.environ.get("AI_MODEL", "")

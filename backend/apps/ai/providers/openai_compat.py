@@ -4,7 +4,7 @@ import json
 
 import requests
 
-from .base import LLMProvider, LLMResponse, ProviderError, ToolCall
+from .base import LLMProvider, LLMResponse, ProviderError, ToolCall, post_with_retry
 
 
 class OpenAICompatProvider(LLMProvider):
@@ -33,11 +33,11 @@ class OpenAICompatProvider(LLMProvider):
         if tools:
             payload["tools"] = tools
         try:
-            r = requests.post(
+            r = post_with_retry(
+                self,
                 f"{self.base_url}/chat/completions",
                 json=payload,
                 headers={"Authorization": f"Bearer {self.api_key}"},
-                timeout=self.timeout,
             )
         except requests.RequestException as e:
             raise ProviderError(f"{self.name} non raggiungibile: {e}") from e
