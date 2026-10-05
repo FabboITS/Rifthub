@@ -12,3 +12,6 @@ frontend/dist/
 .DS_Store
 .claude/
 graphify-out/
+# Artefatti locali di lavoro (design tool, patch)
+.impeccable/
+*.patch
