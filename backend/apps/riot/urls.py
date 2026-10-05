@@ -1,7 +1,7 @@
-from django.urls import path
-from drf_spectacular.utils import extend_schema
 from django.http import Http404, HttpResponse
+from django.urls import path
 from django.views.decorators.http import require_GET
+from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
