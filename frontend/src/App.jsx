@@ -8,7 +8,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RiftBackground from "./components/RiftBackground";
-import { PageTransition, RouteWipe } from "./components/Transitions";
+import { PageTransition } from "./components/Transitions";
 import { AuthProvider } from "./context/AuthContext";
 import AIChat from "./pages/AIChat";
 import { Login, Register } from "./pages/Auth";
@@ -129,7 +129,6 @@ export default function App() {
       <MotionConfig reducedMotion="user">
         <AuthProvider>
           <Toaster position="top-right" containerStyle={{ top: 80, right: 20, zIndex: 95 }}>{(t) => <DsToast t={t} />}</Toaster>
-          <RouteWipe />
           <AppRoutes />
         </AuthProvider>
       </MotionConfig>
