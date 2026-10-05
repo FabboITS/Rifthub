@@ -107,7 +107,9 @@ STR = {"type": "string"}
 TOOLS = {
     "search_players": (search_players, "Cerca player card per ruolo, rank (es. DIAMOND_4 o 2400) e regione.", _schema({
         "role": {"type": "string", "enum": ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"]},
-        "min_rank": STR, "max_rank": STR, "region": STR,
+        "min_rank": {"type": "string", "description": "Rank minimo, per 'almeno X' (es. DIAMOND_4)"},
+        "max_rank": {"type": "string", "description": "Rank massimo, per 'al massimo X'"},
+        "region": STR,
         "looking_for_team": {"type": "boolean"},
     })),
     "get_player_stats": (get_player_stats, "Statistiche avanzate di un giocatore (id o nickname).",
