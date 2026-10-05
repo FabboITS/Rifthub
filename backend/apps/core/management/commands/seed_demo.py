@@ -90,6 +90,9 @@ class Command(BaseCommand):
         boards = self.tactics(teams["Nova Academy"], users)
         self.vods(teams["Nova Academy"], users, boards)
         self.coaching(users)
+        # Answers the AI chat's suggested question ("support almeno Diamond in EUW che cercano team").
+        # Created last so it doesn't shift the random sequence of the data above.
+        self.card_for(None, "Halo", "SUPPORT", "DIAMOND_2", "EUW", looking=True, bio="Support in cerca di team.")
         self.stdout.write(self.style.SUCCESS("Dati demo pronti. Password per tutti: " + PASSWORD))
 
     # ── users & teams ──────────────────────────────────────────────────
