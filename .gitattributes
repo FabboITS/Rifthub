@@ -1,0 +1,12 @@
+# Normalizza i fine riga: su Windows (core.autocrlf=true) gli script shell
+# finirebbero con CRLF e il container backend non partirebbe
+# ("exec ./entrypoint.sh: no such file or directory").
+* text=auto
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.conf text eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary

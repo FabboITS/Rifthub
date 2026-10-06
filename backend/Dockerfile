@@ -4,9 +4,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-RUN chmod +x entrypoint.sh \
+# sed: rimuove eventuali CRLF (clone da Windows) che romperebbero lo shebang
+RUN sed -i 's/\r$//' entrypoint.sh \
+    && chmod +x entrypoint.sh \
     && adduser --system --group --no-create-home app \
     && chown -R app:app /app
 USER app
 EXPOSE 8000
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["sh", "./entrypoint.sh"]

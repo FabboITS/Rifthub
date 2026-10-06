@@ -38,7 +38,7 @@ Dettagli su servizi, healthcheck, avvio del backend e flusso AI in [docs/archite
 
 ### Prerequisiti
 
-- **Docker ≥ 24** con **Compose v2** (è tutto ciò che serve per avviare il sistema).
+- **Docker ≥ 24** con **Compose ≥ 2.24** (è tutto ciò che serve per avviare il sistema; verifica con `docker compose version`: le versioni precedenti non supportano `env_file` opzionale e danno errore sul `docker-compose.yml`).
 - Solo per sviluppo locale senza Docker: Python 3.12, Node 20+, PostgreSQL 16 (opzionale: senza `POSTGRES_HOST` il backend usa SQLite), Ollama.
 
 ### Setup rapido
@@ -283,6 +283,7 @@ Tutto è protetto da JWT (`Authorization: Bearer <access>`) tranne `auth/registe
 | Problema | Soluzione |
 |---|---|
 | **Porte occupate** (5173, 8000, 11434) | Cambia `FRONTEND_PORT`, `BACKEND_PORT` o `OLLAMA_PORT` in `.env` e rilancia `docker compose up -d`. Per far girare una seconda copia del progetto in parallelo usa anche un altro nome progetto: `COMPOSE_PROJECT_NAME=rifthub2 docker compose up -d`. |
+| **Backend in crash con `exec ./entrypoint.sh: no such file or directory`** (clone su Windows) | Fine riga CRLF negli script: ora `.gitattributes` e il Dockerfile li normalizzano. Su un clone vecchio esegui `git pull` e poi `docker compose build --no-cache backend`. |
 | **Frontend non parte / resta in "Waiting"** | Aspetta che il backend sia *healthy* (`docker compose ps`); se non lo diventa guarda `docker compose logs backend` (di solito DB o migrazioni). |
 | **Ollama lento / senza GPU** | Imposta `OLLAMA_NUM_THREAD` al numero di core "performance" della CPU (misura con diversi valori: su CPU ibride fa una differenza enorme), usa `llama3.2:3b`, aumenta `AI_TIMEOUT`, oppure passa a un provider online. Con GPU NVIDIA installa `nvidia-container-toolkit` e decommenta il blocco `deploy` del servizio `ollama`. |
 | **"Provider AI non raggiungibile"** | Il modello è ancora in download (`docker compose logs -f ollama-init`) o il provider non è configurato: controlla `GET /api/ai/status/`. |
